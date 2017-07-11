@@ -8,13 +8,16 @@ use Spry\SpryProvider\SpryTools as SpryTools;
 // Setup Server Vars for CLI
 $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
 
-class SpryCliConnector extends SpryTools {
+class SpryCliConnector extends SpryTools
+{
+
+    private static $cli_path = '';
 
     private static function find_config()
     {
         $files = [
-            'config.php',
-            'spry/config.php'
+            getcwd().'/config.php',
+            getcwd().'/spry/config.php'
         ];
 
         foreach($files as $file)
@@ -28,8 +31,10 @@ class SpryCliConnector extends SpryTools {
         return '';
     }
 
-    public static function run()
+    public static function run($cli_path='')
     {
+        self::$cli_path = $cli_path;
+
         $args = [];
         $config_file = '';
         $commands = [
@@ -176,7 +181,7 @@ class SpryCliConnector extends SpryTools {
                     die("\e[91mERROR:\e[0m Missing Component Name.");
                 }
 
-                $source_component = dirname(__DIR__).'/example_project/components/example.php';
+                $source_component = self::$cli_path.'/example_project/components/example.php';
                 $new_component = Spry::config()->components_dir.'/'.$component_name.'.php';
 
                 if(!is_dir(Spry::config()->components_dir.'/'))
