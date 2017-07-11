@@ -1,5 +1,5 @@
 {
-    "name": "ggedde/spry-cli-api",
+    "name": "ggedde/spry-cli-connector",
     "description": "Connector for Spry Cli",
     "type": "SpryConnector",
     "require": {
