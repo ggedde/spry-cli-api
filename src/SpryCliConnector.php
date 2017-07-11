@@ -8,7 +8,7 @@ use Spry\SpryProvider\SpryTools as SpryTools;
 // Setup Server Vars for CLI
 $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
 
-class SpryCliApi extends SpryTools {
+class SpryCliConnector extends SpryTools {
 
     private static function find_config()
     {
