@@ -337,13 +337,14 @@ class SpryCliConnector extends SpryTools
             break;
 
             case 'up':
+
                 echo
                 "Spry Server Running:\n".
                 " API Endpoint --------- \e[96mhttp://localhost:8000\e[0m\n";
 
                 if(Spry::config()->webtools_enabled && Spry::config()->webtools_endpoint )
                 {
-                    echo " WebTools Url --------- \e[96mhttp://localhost:8001".Spry::config()->webtools_endpoint."\e[0m\n";
+                    echo " WebTools Url --------- \e[96mhttp://localhost:8000".Spry::config()->webtools_endpoint."\e[0m\n";
                 }
 
                 echo "\n";
