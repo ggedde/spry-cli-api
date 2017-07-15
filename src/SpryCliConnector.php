@@ -293,28 +293,70 @@ class SpryCliConnector extends SpryTools
 
                 if($test)
                 {
-                    $tests[] = $test;
-                }
-                else
-                {
-                    $tests = array_keys(Spry::config()->tests);
-                }
-
-                if(empty($tests))
-                {
-
-                }
-                else
-                {
-                    foreach ($tests as $test)
+                    echo "Running Test: ".$test."...\n";
+                    $response = parent::test($test);
+                    if(!empty($response['response']) && $response['response'] === 'error')
                     {
-                        echo "Running Test: ".$test."...\n";
+                        if(!empty($response['messages']))
+                        {
+                            echo "\e[91mERROR:\e[0m\n";
+                            echo implode("\n", $response['messages'])."\n";
+                        }
+                    }
+                    elseif(!empty($response['response']) && $response['response'] === 'success')
+                    {
+                        if(!empty($response['body']))
+                        {
+                            echo "\e[92mSuccess!\e[0m\n";
+                        }
+                    }
+
+                    if($verbose)
+                    {
+                        print_r($response);
+                    }
+                }
+                else
+                {
+                    $last_response_body = null;
+            		$last_response_body_id = null;
+
+                    $failed_tests = [];
+
+                    if(empty(Spry::config()->tests))
+                    {
+                        $response = Spry::results(5052, null);
+                        if(!empty($response['messages']))
+                        {
+                            echo "\e[91mERROR:\e[0m\n";
+                            echo implode("\n", $response['messages'])."\n";
+                            exit;
+                        }
+                    }
+
+                    foreach (Spry::config()->tests as $test_name => $test)
+                    {
+                        foreach ($test['params'] as $param_key => $param)
+            			{
+            				if($param === '{last_response_body}')
+            				{
+            					$test['params'][$param_key] = $last_response_body;
+            				}
+
+            				if($param === '{last_response_body_id}')
+            				{
+            					$test['params'][$param_key] = $last_response_body_id;
+            				}
+            			}
+
+                        echo "\nRunning Test: ".$test_name."...\n";
                         $response = parent::test($test);
                         if(!empty($response['response']) && $response['response'] === 'error')
                         {
+                            $failed_tests[] = $test_name;
                             if(!empty($response['messages']))
                             {
-                                echo "\e[91mERROR:\e[0m\n";
+                                echo "\e[91mFailed:\e[0m\n";
                                 echo implode("\n", $response['messages'])."\n";
                             }
                         }
@@ -330,9 +372,21 @@ class SpryCliConnector extends SpryTools
                         {
                             print_r($response);
                         }
+
+                        $last_response_body = (!empty($response['body']['full_response']['body']) ? $response['body']['full_response']['body'] : null);
+            			$last_response_body_id = (!empty($response['body']['full_response']['body']['id']) ? $response['body']['full_response']['body']['id'] : null);
+                    }
+
+                    if(empty($failed_tests))
+                    {
+                        echo "\n\e[92mAll Tests Passed Successfully!\e[0m\n";
+                    }
+                    else
+                    {
+                        echo "\n\e[91mAll Failed Tests:\e[0m\n - ";
+                        echo implode("\n - ", $failed_tests)."\n";
                     }
                 }
-
 
             break;
 
