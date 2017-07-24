@@ -39,6 +39,7 @@ class SpryCliConnector extends SpryTools
         $config_file = '';
         $commands = [
             'c' => 'component',
+            'clear' => 'clear',
             'h' => 'hash',
             'help' => 'help',
             'i' => 'init',
@@ -51,6 +52,7 @@ class SpryCliConnector extends SpryTools
         $test = '';
         $hash = '';
         $component = '';
+        $clear = '';
         $verbose = false;
 
         if(!empty($_SERVER['argv']))
@@ -98,6 +100,12 @@ class SpryCliConnector extends SpryTools
                 $component = $args[($key + 1)];
             }
 
+            $key = array_search('clear', $args);
+            if($key !== false && isset($args[($key + 1)]) && strpos($args[($key + 1)], '--') === false)
+            {
+                $clear = $args[($key + 1)];
+            }
+
             foreach ($args as $value)
             {
                 if(in_array($value, $commands))
@@ -139,6 +147,8 @@ class SpryCliConnector extends SpryTools
             echo "Spry -v ".Spry::get_version()."\n".
             "Usage: spry [command] [value] [--argument] [--argument]... \n\n".
             "List of Commands and arguments:\n\n".
+            "\e[1mclear                         \e[0m- Clears specific objects. Currently only supports 'logs'.\n".
+            "  ex.     spry clear logs    (clears both API and PHP log files. Does not remove archived logs.)\n\n".
             "\e[1mcomponent | c                 \e[0m- Generate a new Component and add it to your component directory.\n".
             "  ex.     spry component sales_reps    (component classes will follow psr-4 format. ie SalesReps)\n\n".
             "\e[1mhash | h                      \e[0m- Hash a value that procedes it using the salt in the config file.\n".
@@ -218,6 +228,60 @@ class SpryCliConnector extends SpryTools
                 echo "\n\e[92mComponent Created Successfully!\e[0m\n".
                 $new_component."\n";
 
+
+            break;
+
+            case 'clear':
+
+                if(!$clear)
+                {
+                    die("\e[91mERROR:\e[0m Clear Object Missing.\n");
+                }
+
+                switch($clear)
+                {
+                    case 'logs':
+
+                        if(!empty(Spry::config()->log_api_file) && file_exists(Spry::config()->log_api_file))
+                        {
+                            if(file_put_contents(Spry::config()->log_api_file, '') !== false)
+                            {
+                                echo "\e[92mCleared API Logs!\e[0m\n";
+                            }
+                            else
+                            {
+                                "\e[91mUnknown ERROR:\e[0m Clearing API Log.\n";
+                            }
+                        }
+                        else
+                        {
+                            "\e[91mERROR:\e[0m Could not find API Log.\n";
+                        }
+
+                        if(!empty(Spry::config()->log_php_file) && file_exists(Spry::config()->log_php_file))
+                        {
+                            if(file_put_contents(Spry::config()->log_php_file, '') !== false)
+                            {
+                                echo "\e[92mCleared PHP Logs!\e[0m\n";
+                            }
+                            else
+                            {
+                                "\e[91mUnknown ERROR:\e[0m Clearing PHP Log.\n";
+                            }
+                        }
+                        else
+                        {
+                            "\e[91mERROR:\e[0m Could not find PHP Log.\n";
+                        }
+
+                    break;
+
+                    default:
+
+                        die("\e[91mERROR:\e[0m Unknown Clear Command.\n");
+
+                    break;
+                }
 
             break;
 
