@@ -382,8 +382,9 @@ class SpryCliConnector extends SpryTools
                 }
                 else
                 {
-                    $last_response_body = null;
-            		$last_response_body_id = null;
+                    $last_response = null;
+                    // $last_response_body = null;
+            		// $last_response_body_id = null;
 
                     $failed_tests = [];
 
@@ -402,15 +403,25 @@ class SpryCliConnector extends SpryTools
                     {
                         foreach ($test['params'] as $param_key => $param)
             			{
-            				if($param === '{last_response_body}')
-            				{
-            					$test['params'][$param_key] = $last_response_body;
-            				}
+                            if(!empty($last_response) && substr($param, 0, 1) === '{' && substr($param, -1) === '}')
+                            {
+                                $path = explode('.', substr($param, 1, -1));
+                                $param_value = $last_response;
+                                foreach($path as $key)
+                                {
+                                    if(isset($param_value[$key]))
+                                    {
+                                        $param_value = $param_value[$key];
+                                    }
+                                    else
+                                    {
+                                        $param_value = null;
+                                        break;
+                                    }
+                                }
 
-            				if($param === '{last_response_body_id}')
-            				{
-            					$test['params'][$param_key] = $last_response_body_id;
-            				}
+                                $test['params'][$param_key] = $param_value;
+                            }
             			}
 
                         echo "\nRunning Test: ".$test_name."...\n";
@@ -437,8 +448,9 @@ class SpryCliConnector extends SpryTools
                             print_r($response);
                         }
 
-                        $last_response_body = (!empty($response['body']['full_response']['body']) ? $response['body']['full_response']['body'] : null);
-            			$last_response_body_id = (!empty($response['body']['full_response']['body']['id']) ? $response['body']['full_response']['body']['id'] : null);
+                        $last_response = (!empty($response['body']['full_response']) ? $response['body']['full_response'] : null);
+                        // $last_response_body = (!empty($response['body']['full_response']['body']) ? $response['body']['full_response']['body'] : null);
+            			// $last_response_body_id = (!empty($response['body']['full_response']['body']['id']) ? $response['body']['full_response']['body']['id'] : null);
                     }
 
                     if(empty($failed_tests))
