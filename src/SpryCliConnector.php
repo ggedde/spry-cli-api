@@ -49,11 +49,12 @@ class SpryCliConnector extends SpryTools
             'v' => 'version'
         ];
         $command = '';
-        $test = '';
+        $singletest = '';
         $hash = '';
         $component = '';
         $clear = '';
         $verbose = false;
+        $repeat = 1;
 
         if(!empty($_SERVER['argv']))
         {
@@ -87,7 +88,7 @@ class SpryCliConnector extends SpryTools
             }
             if($key !== false && isset($args[($key + 1)]) && strpos($args[($key + 1)], '--') === false)
             {
-                $test = $args[($key + 1)];
+                $singletest = $args[($key + 1)];
             }
 
             $key = array_search('c', $args);
@@ -104,6 +105,12 @@ class SpryCliConnector extends SpryTools
             if($key !== false && isset($args[($key + 1)]) && strpos($args[($key + 1)], '--') === false)
             {
                 $clear = $args[($key + 1)];
+            }
+
+            $key = array_search('--repeat', $args);
+            if($key !== false && isset($args[($key + 1)]))
+            {
+                $repeat = $args[($key + 1)];
             }
 
             foreach ($args as $value)
@@ -355,83 +362,22 @@ class SpryCliConnector extends SpryTools
 
             case 'test':
 
-                if($test)
+                $total_time = 0;
+
+                for($i=0; $i < $repeat; $i++)
                 {
-                    echo "Running Test: ".$test."...\n";
-                    $response = parent::test($test);
-                    if(!empty($response['response']) && $response['response'] === 'error')
+                    if($singletest)
                     {
-                        if(!empty($response['messages']))
-                        {
-                            echo "\e[91mERROR:\e[0m\n";
-                            echo implode("\n", $response['messages'])."\n";
-                        }
-                    }
-                    elseif(!empty($response['response']) && $response['response'] === 'success')
-                    {
-                        if(!empty($response['body']))
-                        {
-                            echo "\e[92mSuccess!\e[0m\n";
-                        }
-                    }
-
-                    if($verbose)
-                    {
-                        print_r($response);
-                    }
-                }
-                else
-                {
-                    $last_response = null;
-                    // $last_response_body = null;
-            		// $last_response_body_id = null;
-
-                    $failed_tests = [];
-
-                    if(empty(Spry::config()->tests))
-                    {
-                        $response = Spry::results(5052, null);
-                        if(!empty($response['messages']))
-                        {
-                            echo "\e[91mERROR:\e[0m\n";
-                            echo implode("\n", $response['messages'])."\n";
-                            exit;
-                        }
-                    }
-
-                    foreach (Spry::config()->tests as $test_name => $test)
-                    {
-                        foreach ($test['params'] as $param_key => $param)
-            			{
-                            if(!empty($last_response) && substr($param, 0, 1) === '{' && substr($param, -1) === '}')
-                            {
-                                $path = explode('.', substr($param, 1, -1));
-                                $param_value = $last_response;
-                                foreach($path as $key)
-                                {
-                                    if(isset($param_value[$key]))
-                                    {
-                                        $param_value = $param_value[$key];
-                                    }
-                                    else
-                                    {
-                                        $param_value = null;
-                                        break;
-                                    }
-                                }
-
-                                $test['params'][$param_key] = $param_value;
-                            }
-            			}
-
-                        echo "\nRunning Test: ".$test_name."...\n";
-                        $response = parent::test($test);
+                        echo "Running Test: ".$singletest."...\n";
+                        $time_start = microtime(true);
+                        $response = parent::test($singletest);
+                        $time = number_format(microtime(true) - $time_start, 6);
+                        $total_time+= $time;
                         if(!empty($response['response']) && $response['response'] === 'error')
                         {
-                            $failed_tests[] = $test_name;
                             if(!empty($response['messages']))
                             {
-                                echo "\e[91mFailed:\e[0m\n";
+                                echo "\e[91mERROR:\e[0m (".$time." sec)\n";
                                 echo implode("\n", $response['messages'])."\n";
                             }
                         }
@@ -439,7 +385,7 @@ class SpryCliConnector extends SpryTools
                         {
                             if(!empty($response['body']))
                             {
-                                echo "\e[92mSuccess!\e[0m\n";
+                                echo "\e[92mSuccess!\e[0m (".$time." sec)\n";
                             }
                         }
 
@@ -447,21 +393,95 @@ class SpryCliConnector extends SpryTools
                         {
                             print_r($response);
                         }
-
-                        $last_response = (!empty($response['body']['full_response']) ? $response['body']['full_response'] : null);
-                        // $last_response_body = (!empty($response['body']['full_response']['body']) ? $response['body']['full_response']['body'] : null);
-            			// $last_response_body_id = (!empty($response['body']['full_response']['body']['id']) ? $response['body']['full_response']['body']['id'] : null);
-                    }
-
-                    if(empty($failed_tests))
-                    {
-                        echo "\n\e[92mAll Tests Passed Successfully!\e[0m\n";
                     }
                     else
                     {
-                        echo "\n\e[91mAll Failed Tests:\e[0m\n - ";
-                        echo implode("\n - ", $failed_tests)."\n";
+                        $last_response = null;
+
+                        $failed_tests = [];
+
+                        if(empty(Spry::config()->tests))
+                        {
+                            $response = Spry::results(5052, null);
+                            if(!empty($response['messages']))
+                            {
+                                echo "\e[91mERROR:\e[0m\n";
+                                echo implode("\n", $response['messages'])."\n";
+                                exit;
+                            }
+                        }
+
+                        foreach (Spry::config()->tests as $test_name => $test)
+                        {
+                            foreach ($test['params'] as $param_key => $param)
+                			{
+                                if(!empty($last_response) && substr($param, 0, 1) === '{' && substr($param, -1) === '}')
+                                {
+                                    $path = explode('.', substr($param, 1, -1));
+                                    $param_value = $last_response;
+                                    foreach($path as $key)
+                                    {
+                                        if(isset($param_value[$key]))
+                                        {
+                                            $param_value = $param_value[$key];
+                                        }
+                                        else
+                                        {
+                                            $param_value = null;
+                                            break;
+                                        }
+                                    }
+
+                                    $test['params'][$param_key] = $param_value;
+                                }
+                			}
+
+                            echo "\nRunning Test: ".$test_name."...\n";
+                            $time_start = microtime(true);
+                            $response = parent::test($test);
+                            $time = number_format(microtime(true) - $time_start, 6);
+                            $total_time+= $time;
+                            if(!empty($response['response']) && $response['response'] === 'error')
+                            {
+                                $failed_tests[] = $test_name;
+                                if(!empty($response['messages']))
+                                {
+                                    echo "\e[91mFailed:\e[0m (".$time." sec)\n";
+                                    echo implode("\n", $response['messages'])."\n";
+                                }
+                            }
+                            elseif(!empty($response['response']) && $response['response'] === 'success')
+                            {
+                                if(!empty($response['body']))
+                                {
+                                    echo "\e[92mSuccess!\e[0m (".$time." sec)\n";
+                                }
+                            }
+
+                            if($verbose)
+                            {
+                                print_r($response);
+                            }
+
+                            $last_response = (!empty($response['body']['full_response']) ? $response['body']['full_response'] : null);
+                        }
+
+                        if(empty($failed_tests))
+                        {
+                            echo "\n\e[92mAll Tests Passed Successfully!\e[0m\n";
+                        }
+                        else
+                        {
+                            echo "\n\e[91mAll Failed Tests:\e[0m\n - ";
+                            echo implode("\n - ", $failed_tests)."\n";
+                        }
                     }
+                }
+
+                if($repeat > 1)
+                {
+                    echo "\n\e[92mTotal Time:\e[0m (".number_format($total_time, 6)." sec)\n";
+                    echo "\e[92mAverage Time:\e[0m (".number_format(($total_time/$repeat), 6)." sec)\n";
                 }
 
             break;
