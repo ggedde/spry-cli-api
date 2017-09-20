@@ -55,6 +55,7 @@ class SpryCliConnector extends SpryTools
         $clear = '';
         $verbose = false;
         $repeat = 1;
+        $port = 8000;
 
         if(!empty($_SERVER['argv']))
         {
@@ -79,6 +80,16 @@ class SpryCliConnector extends SpryTools
             if($key !== false && isset($args[($key + 1)]) && strpos($args[($key + 1)], '--') === false)
             {
                 $hash = $args[($key + 1)];
+            }
+
+            $key = array_search('u', $args);
+            if($key === false)
+            {
+                $key = array_search('up', $args);
+            }
+            if($key !== false && isset($args[($key + 1)]) && strpos($args[($key + 1)], '--') === false)
+            {
+                $port = $args[($key + 1)];
             }
 
             $key = array_search('t', $args);
@@ -154,24 +165,34 @@ class SpryCliConnector extends SpryTools
             echo "Spry -v ".Spry::get_version()."\n".
             "Usage: spry [command] [value] [--argument] [--argument]... \n\n".
             "List of Commands and arguments:\n\n".
-            "\e[1mclear                         \e[0m- Clears specific objects. Currently only supports 'logs'.\n".
+            "\e[1mclear [object]                \e[0m- Clears specific objects. Currently only supports 'logs'.\n".
             "  ex.     spry clear logs    (clears both API and PHP log files. Does not remove archived logs.)\n\n".
-            "\e[1mcomponent | c                 \e[0m- Generate a new Component and add it to your component directory.\n".
+            "\e[1mcomponent | c [component]     \e[0m- Generate a new Component and add it to your component directory.\n".
             "  ex.     spry component sales_reps    (component classes will follow psr-4 format. ie SalesReps)\n\n".
-            "\e[1mhash | h                      \e[0m- Hash a value that procedes it using the salt in the config file.\n".
+            "\e[1mhash | h [value]              \e[0m- Hash a value that procedes it using the salt in the config file.\n".
             "  ex.     spry hash something_to_hash_123\n".
             "  ex.     spry hash \"hash with spaces 123\"\n\n".
             "\e[1mhelp | -h | --help            \e[0m- Display Information about Spry-cli.\n\n".
-            "\e[1minit | i                      \e[0m- Initiate a Spry Setup and Configuration with default project.\n\n".
-            "\e[1mmigrate | m                   \e[0m- Migrate the Database Schema.\n".
+            "\e[1minit | i [public_directory]   \e[0m- Initiate a Spry Setup and Configuration with default project.\n".
+            "  [public_directory]          - Creates a public endpoint directory with index.php.\n".
+            "  ex.     spry init\n".
+            "  ex.     spry init public     (creates a folder called 'public' and an index.php pointer file)\n\n".
+            "\e[1mmigrate | m [--options]       \e[0m- Migrate the Database Schema.\n".
             "  --dryrun                    - Only check for what will be migrated and report back. No actions will be taken.\n".
             "  --destructive               - Delete Fields, Tables and other data that does not match the new Scheme.\n\n".
-            "\e[1mtest | t                      \e[0m- Run a Test or all Tests if a Test name is not specified.\n".
+            "\e[1mnew | n [project]             \e[0m- Creates a new project and initiates it.\n".
+            "  [project]                   - Name of project/directory to create and initialize.\n\n".
+            "\e[1mtest | t [test] [--options]   \e[0m- Run a Test or all Tests if a Test name is not specified.\n".
             "  --verbose                   - List out full details of the Test(s).\n".
+            "  --repeat                    - Repeat the test(s) a number of times.\n".
             "  ex.     spry test\n".
             "  ex.     spry test --verbose\n".
-            "  ex.     spry test test_123 --verbose\n\n".
-            "\e[1mversion | v | -v | --version  \e[0m- Display the Version of the Spry Instalation.\n\n";
+            "  ex.     spry test connection --verbose --repeat 4\n".
+            "  ex.     spry test '{\"route\":\"/example/add\", \"params\":{\"name\":\"test\"}, \"expect\":{\"response_code\": 2000}}'\n\n".
+            "\e[1mversion | v | -v | --version  \e[0m- Display the Version of the Spry Instalation.\n\n".
+            "\e[1mup | u [port] [directory]     \e[0m- Start the Built in PHP Spry Server.\n".
+            "  [port]                      - default is 8000.\n".
+            "  [directory]                 - default is current directory.  Requires 'vendor/autoload.php'\n";
         }
 
         if(!$config_file)
@@ -368,9 +389,45 @@ class SpryCliConnector extends SpryTools
                 {
                     if($singletest)
                     {
-                        echo "Running Test: ".$singletest."...\n";
+                        if(stripos( $singletest, '{' ) === false)
+                        {
+                            echo "Running Test: ".$singletest."...\n";
+                            $testdata = $singletest;
+                        }
+                        else
+                        {
+                            $testdata = json_decode($singletest, true);
+
+                            if(empty($testdata) || !is_array($testdata))
+                            {
+                                echo "\e[91mERROR:\e[0m Invalid Test Data.\n";
+                                return false;
+                            }
+
+                            if(empty($testdata['route']))
+                            {
+                                echo "\e[91mERROR:\e[0m Test Data Missing Route.\n";
+                                return false;
+                            }
+
+                            if(empty($testdata['params']))
+                            {
+                                echo "\e[91mERROR:\e[0m Test Data Missing Params.\n";
+                                return false;
+                            }
+
+                            if(empty($testdata['expect']))
+                            {
+                                echo "\e[91mERROR:\e[0m Test Data Missing Expect.\n";
+                                return false;
+                            }
+
+                            echo "Running Test: ".$testdata['route']."...\n";
+
+                        }
+
                         $time_start = microtime(true);
-                        $response = parent::test($singletest);
+                        $response = parent::test($testdata);
                         $time = number_format(microtime(true) - $time_start, 6);
                         $total_time+= $time;
                         if(!empty($response['response']) && $response['response'] === 'error')
@@ -490,11 +547,11 @@ class SpryCliConnector extends SpryTools
 
                 echo
                 "Spry Server Running:\n".
-                " API Endpoint --------- \e[96mhttp://localhost:8000\e[0m\n";
+                " API Endpoint --------- \e[96mhttp://localhost:".$port."\e[0m\n";
 
                 if(Spry::config()->webtools_enabled && Spry::config()->webtools_endpoint )
                 {
-                    echo " WebTools Url --------- \e[96mhttp://localhost:8000".Spry::config()->webtools_endpoint."\e[0m\n";
+                    echo " WebTools Url --------- \e[96mhttp://localhost:".$port.Spry::config()->webtools_endpoint."\e[0m\n";
                 }
 
                 echo "\n";
