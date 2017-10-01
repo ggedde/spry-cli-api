@@ -46,7 +46,9 @@ class SpryCliConnector extends SpryTools
             'm' => 'migrate',
             't' => 'test',
             'u' => 'up',
-            'v' => 'version'
+            'v' => 'version',
+            'l' => 'logs',
+            'log' => 'logs',
         ];
         $command = '';
         $singletest = '';
@@ -56,6 +58,9 @@ class SpryCliConnector extends SpryTools
         $verbose = false;
         $repeat = 1;
         $port = 8000;
+        $logs = '';
+        $lines = '100';
+        $trace = false;
 
         if(!empty($_SERVER['argv']))
         {
@@ -121,18 +126,53 @@ class SpryCliConnector extends SpryTools
             $key = array_search('--repeat', $args);
             if($key !== false && isset($args[($key + 1)]))
             {
-                $repeat = $args[($key + 1)];
+                if(is_numeric($args[($key + 1)]))
+                {
+                    $repeat = floor($args[($key + 1)]);
+                }
+            }
+
+            $key = array_search('l', $args);
+            if($key === false)
+            {
+                $key = array_search('log', $args);
+            }
+            if($key === false)
+            {
+                $key = array_search('logs', $args);
+            }
+            if($key !== false && isset($args[($key + 1)]) && strpos($args[($key + 1)], '--') === false)
+            {
+                $logs = $args[($key + 1)];
+            }
+
+            $key = array_search('--lines', $args);
+            if($key !== false && isset($args[($key + 1)]))
+            {
+                if(is_numeric($args[($key + 1)]))
+                {
+                    $lines = floor($args[($key + 1)]);
+                }
+            }
+
+            $key = array_search('--trace', $args);
+            if($key !== false)
+            {
+                $trace = true;
             }
 
             foreach ($args as $value)
             {
-                if(in_array($value, $commands))
+                if(empty($command))
                 {
-                    $command = $value;
-                }
-                elseif(in_array($value, array_keys($commands)))
-                {
-                    $command = $commands[$value];
+                    if(in_array($value, $commands))
+                    {
+                        $command = $value;
+                    }
+                    elseif(in_array($value, array_keys($commands)))
+                    {
+                        $command = $commands[$value];
+                    }
                 }
             }
         }
@@ -350,6 +390,68 @@ class SpryCliConnector extends SpryTools
                 }
 
                 die(parent::get_hash($hash));
+
+            break;
+
+            case 'logs':
+
+                if(empty($logs) || !in_array($logs, ['php', 'api']))
+                {
+                    die("\e[91mERROR:\e[0m Missing Logs Value.  Either 'php' or 'api' is acceptable.");
+                }
+
+                $files = [
+                    'php' => Spry::config()->log_php_file,
+                    'api' => Spry::config()->log_api_file,
+                ];
+
+                if(!file_exists($files[$logs]))
+                {
+                    die("\e[91mERROR:\e[0m Cannot find Logs File (".(!empty($files[$logs]) ? $files[$logs] : '')."). Check your Configuration for correct settings.");
+                }
+
+                $f = fopen($files[$logs], "rb");
+                if($f === false)
+                {
+                    die("\e[91mERROR:\e[0m Could not read file (".(!empty($files[$logs]) ? $files[$logs] : '')."). Check the Permissions.");
+                }
+
+                $buffer = ($lines < 2 ? 64 : ($lines < 10 ? 512 : 4096));
+                fseek($f, -1, SEEK_END);
+
+                if(fread($f, 1) != "\n")
+                {
+                    $lines -= 1;
+                }
+
+                $output = '';
+                $chunk = '';
+
+                while (ftell($f) > 0 && $lines >= 0)
+                {
+                    $seek = min(ftell($f), $buffer);
+                    fseek($f, -$seek, SEEK_CUR);
+                    $output = ($chunk = fread($f, $seek)) . $output;
+                    fseek($f, -mb_strlen($chunk, '8bit'), SEEK_CUR);
+                    $lines -= substr_count($chunk, "\n");
+                }
+
+                while ($lines++ < 0)
+                {
+                    $output = substr($output, strpos($output, "\n") + 1);
+                }
+
+                if(!$trace)
+                {
+                    $output = preg_replace('/ - - Trace:[^\n]*\n/s', '', $output);
+                }
+
+                fclose($f);
+                echo "\n#######################################################################\n";
+                echo "## \e[96mLogs - ".$files[$logs]."\e[0m";
+                echo "\n#######################################################################\n";
+                echo "\n".trim(($output ? $output : "\e[92mEMPTY\e[0m"))."\n";
+                exit;
 
             break;
 
