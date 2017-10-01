@@ -8,7 +8,7 @@ use Spry\SpryProvider\SpryTools;
 // Setup Server Vars for CLI
 $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
 
-class SpryCliConnector extends SpryTools
+class SpryCliConnector
 {
 
     private static $cli_path = '';
@@ -395,7 +395,7 @@ class SpryCliConnector extends SpryTools
                     die("\e[91mERROR:\e[0m Missing Hash Value.  If hashing a value that has spaces then wrap with \"\"");
                 }
 
-                die(parent::get_hash($hash));
+                die(SpryTools::hash($hash));
 
             break;
 
@@ -468,7 +468,7 @@ class SpryCliConnector extends SpryTools
                     'destructive' => (in_array('--destructive', $args) ? true : false),
                 ];
 
-                $response = parent::db_migrate($migrate_args);
+                $response = SpryTools::db_migrate($migrate_args);
 
                 if(!empty($response['response']) && $response['response'] === 'error')
                 {
@@ -535,7 +535,7 @@ class SpryCliConnector extends SpryTools
                         }
 
                         $time_start = microtime(true);
-                        $response = parent::test($testdata);
+                        $response = SpryTools::test($testdata);
                         $time = number_format(microtime(true) - $time_start, 6);
                         $total_time+= $time;
                         if(!empty($response['response']) && $response['response'] === 'error')
@@ -603,7 +603,7 @@ class SpryCliConnector extends SpryTools
 
                             echo "\nRunning Test: ".$test_name."...\n";
                             $time_start = microtime(true);
-                            $response = parent::test($test);
+                            $response = SpryTools::test($test);
                             $time = number_format(microtime(true) - $time_start, 6);
                             $total_time+= $time;
                             if(!empty($response['response']) && $response['response'] === 'error')
