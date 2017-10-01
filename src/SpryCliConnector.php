@@ -499,8 +499,15 @@ class SpryCliConnector
                     {
                         if(stripos( $singletest, '{' ) === false)
                         {
-                            echo "Running Test: ".$singletest."...\n";
                             $testdata = $singletest;
+
+                            if(!empty(Spry::config()->tests[$testdata]))
+                            {
+                                $testdata = Spry::config()->tests[$testdata];
+                            }
+
+                            echo "Running Test: ".(!empty($testdata['label']) ? $testdata['label'] : $singletest)."...\n";
+
                         }
                         else
                         {
@@ -530,7 +537,7 @@ class SpryCliConnector
                                 return false;
                             }
 
-                            echo "Running Test: ".$testdata['route']."...\n";
+                            echo "Running Test: ".(!empty($testdata['label']) ? $testdata['label'] : $testdata['route'])."...\n";
 
                         }
 
@@ -601,7 +608,7 @@ class SpryCliConnector
                                 }
                 			}
 
-                            echo "\nRunning Test: ".$test_name."...\n";
+                            echo "\nRunning Test: ".(!empty($test['label']) ? $test['label'] : $test_name)."...\n";
                             $time_start = microtime(true);
                             $response = SpryTools::test($test);
                             $time = number_format(microtime(true) - $time_start, 6);
