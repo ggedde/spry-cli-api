@@ -217,6 +217,12 @@ class SpryCliConnector extends SpryTools
             "  [public_directory]          - Creates a public endpoint directory with index.php.\n".
             "  ex.     spry init\n".
             "  ex.     spry init public     (creates a folder called 'public' and an index.php pointer file)\n\n".
+            "\e[1mlogs | l [type] [--options]   \e[0m- Displays contents of log files.\n".
+            "  [type]                      - php | api.\n".
+            "  --lines                     - Number of lines to display. Default 100.\n".
+            "  --trace                     - Only applies to 'type=php'. Adds trace to display.\n".
+            "  ex.     spry logs api\n".
+            "  ex.     spry logs php --lines 10 --trace\n\n".
             "\e[1mmigrate | m [--options]       \e[0m- Migrate the Database Schema.\n".
             "  --dryrun                    - Only check for what will be migrated and report back. No actions will be taken.\n".
             "  --destructive               - Delete Fields, Tables and other data that does not match the new Scheme.\n\n".
