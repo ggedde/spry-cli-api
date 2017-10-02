@@ -589,22 +589,7 @@ class SpryCliConnector
                 			{
                                 if(!empty($last_response) && substr($param, 0, 1) === '{' && substr($param, -1) === '}')
                                 {
-                                    $path = explode('.', substr($param, 1, -1));
-                                    $param_value = $last_response;
-                                    foreach($path as $key)
-                                    {
-                                        if(isset($param_value[$key]))
-                                        {
-                                            $param_value = $param_value[$key];
-                                        }
-                                        else
-                                        {
-                                            $param_value = null;
-                                            break;
-                                        }
-                                    }
-
-                                    $test['params'][$param_key] = $param_value;
+                                    $test['params'][$param_key] = SpryTools::extractKeyValue(substr($param, 1, -1), $last_response);
                                 }
                 			}
 
