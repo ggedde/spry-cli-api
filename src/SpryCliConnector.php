@@ -234,7 +234,7 @@ class SpryCliConnector
             "  ex.     spry test\n".
             "  ex.     spry test --verbose\n".
             "  ex.     spry test connection --verbose --repeat 4\n".
-            "  ex.     spry test '{\"route\":\"/example/add\", \"params\":{\"name\":\"test\"}, \"expect\":{\"response_code\": 2000}}'\n\n".
+            "  ex.     spry test '{\"route\":\"/example/add\", \"params\":{\"name\":\"test\"}, \"expect\":{\"code\": 2000}}'\n\n".
             "\e[1mversion | v | -v | --version  \e[0m- Display the Version of the Spry Instalation.\n\n".
             "\e[1mup | u [port] [directory]     \e[0m- Start the Built in PHP Spry Server.\n".
             "  [port]                      - default is 8000.\n".
@@ -470,7 +470,7 @@ class SpryCliConnector
 
                 $response = SpryTools::db_migrate($migrate_args);
 
-                if(!empty($response['response']) && $response['response'] === 'error')
+                if(!empty($response['status']) && $response['status'] === 'error')
                 {
                     if(!empty($response['messages']))
                     {
@@ -478,7 +478,7 @@ class SpryCliConnector
                         echo implode("\n", $response['messages']);
                     }
                 }
-                elseif(!empty($response['response']) && $response['response'] === 'success')
+                elseif(!empty($response['status']) && $response['status'] === 'success')
                 {
                     if(!empty($response['body']))
                     {
@@ -545,7 +545,7 @@ class SpryCliConnector
                         $response = SpryTools::test($testdata);
                         $time = number_format(microtime(true) - $time_start, 6);
                         $total_time+= $time;
-                        if(!empty($response['response']) && $response['response'] === 'error')
+                        if(!empty($response['status']) && $response['status'] === 'error')
                         {
                             if(!empty($response['messages']))
                             {
@@ -553,7 +553,7 @@ class SpryCliConnector
                                 echo implode("\n", $response['messages'])."\n";
                             }
                         }
-                        elseif(!empty($response['response']) && $response['response'] === 'success')
+                        elseif(!empty($response['status']) && $response['status'] === 'success')
                         {
                             if(!empty($response['body']))
                             {
@@ -598,7 +598,7 @@ class SpryCliConnector
                             $response = SpryTools::test($test);
                             $time = number_format(microtime(true) - $time_start, 6);
                             $total_time+= $time;
-                            if(!empty($response['response']) && $response['response'] === 'error')
+                            if(!empty($response['status']) && $response['status'] === 'error')
                             {
                                 $failed_tests[] = $test_name;
                                 if(!empty($response['messages']))
@@ -607,7 +607,7 @@ class SpryCliConnector
                                     echo implode("\n", $response['messages'])."\n";
                                 }
                             }
-                            elseif(!empty($response['response']) && $response['response'] === 'success')
+                            elseif(!empty($response['status']) && $response['status'] === 'success')
                             {
                                 if(!empty($response['body']))
                                 {
