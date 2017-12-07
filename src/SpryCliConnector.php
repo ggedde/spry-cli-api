@@ -3,7 +3,6 @@
 namespace Spry\SpryConnector;
 
 use Spry\Spry;
-use Spry\SpryUtilities;
 
 // Setup Server Vars for CLI
 $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
