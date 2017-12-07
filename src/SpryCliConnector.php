@@ -3,7 +3,7 @@
 namespace Spry\SpryConnector;
 
 use Spry\Spry;
-use Spry\SpryProvider\SpryTools;
+use Spry\SpryUtilities;
 
 // Setup Server Vars for CLI
 $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
@@ -395,7 +395,7 @@ class SpryCliConnector
                     die("\e[91mERROR:\e[0m Missing Hash Value.  If hashing a value that has spaces then wrap with \"\"");
                 }
 
-                die(SpryTools::hash($hash));
+                die(SpryUtilities::hash($hash));
 
             break;
 
@@ -468,7 +468,7 @@ class SpryCliConnector
                     'destructive' => (in_array('--destructive', $args) ? true : false),
                 ];
 
-                $response = SpryTools::db_migrate($migrate_args);
+                $response = SpryUtilities::db_migrate($migrate_args);
 
                 if(!empty($response['status']) && $response['status'] === 'error')
                 {
@@ -542,7 +542,7 @@ class SpryCliConnector
                         }
 
                         $time_start = microtime(true);
-                        $response = SpryTools::test($testdata);
+                        $response = SpryUtilities::test($testdata);
                         $time = number_format(microtime(true) - $time_start, 6);
                         $total_time+= $time;
                         if(!empty($response['status']) && $response['status'] === 'error')
@@ -589,13 +589,13 @@ class SpryCliConnector
                 			{
                                 if(!empty($last_response) && substr($param, 0, 1) === '{' && substr($param, -1) === '}')
                                 {
-                                    $test['params'][$param_key] = SpryTools::extractKeyValue(substr($param, 1, -1), $last_response);
+                                    $test['params'][$param_key] = SpryUtilities::extractKeyValue(substr($param, 1, -1), $last_response);
                                 }
                 			}
 
                             echo "\nRunning Test: ".(!empty($test['label']) ? $test['label'] : $test_name)."...\n";
                             $time_start = microtime(true);
-                            $response = SpryTools::test($test);
+                            $response = SpryUtilities::test($test);
                             $time = number_format(microtime(true) - $time_start, 6);
                             $total_time+= $time;
                             if(!empty($response['status']) && $response['status'] === 'error')
