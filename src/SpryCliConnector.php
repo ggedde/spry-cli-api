@@ -468,7 +468,7 @@ class SpryCliConnector
                     'destructive' => (in_array('--destructive', $args) ? true : false),
                 ];
 
-                $response = SpryUtilities::db_migrate($migrate_args);
+                $response = SpryUtilities::dbMigrate($migrate_args);
 
                 if(!empty($response['status']) && $response['status'] === 'error')
                 {
