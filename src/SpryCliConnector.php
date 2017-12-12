@@ -224,8 +224,8 @@ class SpryCliConnector
             "  ex.     spry logs api\n".
             "  ex.     spry logs php --lines 10 --trace\n\n".
             "\e[1mmigrate | m [--options]       \e[0m- Migrate the Database Schema.\n".
-            "  --dryrun                    - Only check for what will be migrated and report back. No actions will be taken.\n".
-            "  --destructive               - Delete Fields, Tables and other data that does not match the new Scheme.\n\n".
+            "  --dryrun  |  -d             - Only check for what will be migrated and report back. No actions will be taken.\n".
+            "  --force   |  -f             - Delete Fields, Tables and other data that does not match the new Scheme.\n\n".
             "\e[1mnew | n [project]             \e[0m- Creates a new project and initiates it.\n".
             "  [project]                   - Name of project/directory to create and initialize.\n\n".
             "\e[1mtest | t [test] [--options]   \e[0m- Run a Test or all Tests if a Test name is not specified.\n".
@@ -464,8 +464,8 @@ class SpryCliConnector
             case 'migrate':
 
                 $migrate_args = [
-                    'dryrun' => (in_array('--dryrun', $args) ? true : false),
-                    'destructive' => (in_array('--destructive', $args) ? true : false),
+                    'dryrun' => (in_array('--dryrun', $args) || in_array('-d', $args) ? true : false),
+                    'force' => (in_array('--force', $args) || in_array('-f', $args) ? true : false),
                 ];
 
                 $response = SpryUtilities::dbMigrate($migrate_args);
