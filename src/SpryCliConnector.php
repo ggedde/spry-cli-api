@@ -56,6 +56,7 @@ class SpryCliConnector
         $component = '';
         $clear = '';
         $verbose = false;
+        $skip = false;
         $repeat = 1;
         $port = 8000;
         $logs = '';
@@ -75,6 +76,12 @@ class SpryCliConnector
             if($key !== false)
             {
                 $verbose = true;
+            }
+
+			$key = array_search('--skip', $args);
+            if($key !== false)
+            {
+                $skip = true;
             }
 
             $key = array_search('h', $args);
@@ -495,7 +502,7 @@ class SpryCliConnector
 
                 for($i=0; $i < $repeat; $i++)
                 {
-                    if($singletest)
+                    if($singletest && (stripos( $singletest, '{' ) !== false || (stripos( $singletest, '{' ) === false && stripos( $singletest, '*' ) === false)))
                     {
                         if(stripos( $singletest, '{' ) === false)
                         {
@@ -568,6 +575,13 @@ class SpryCliConnector
                     }
                     else
                     {
+						$wildcard = false;
+
+						if($singletest && stripos($singletest, '*' ) !== false)
+						{
+							$wildcard = str_replace('*', '', $singletest);
+						}
+
                         $last_response = null;
 
                         $failed_tests = [];
@@ -585,6 +599,12 @@ class SpryCliConnector
 
                         foreach (Spry::config()->tests as $test_name => $test)
                         {
+							// Skip if using Wildcard with no Match
+							if($wildcard && stripos( $test_name, $wildcard ) === false)
+							{
+								continue;
+							}
+
                             foreach ($test['params'] as $param_key => $param)
                 			{
                                 if(!empty($last_response) && substr($param, 0, 1) === '{' && substr($param, -1) === '}')
@@ -619,6 +639,12 @@ class SpryCliConnector
                             {
                                 print_r($response);
                             }
+
+							// Stop on Error if Skip is false
+							if(!empty($response['status']) && $response['status'] === 'error' && !$skip)
+                            {
+								break;
+							}
 
                             $last_response = (!empty($response['body']['full_response']) ? $response['body']['full_response'] : null);
                         }
