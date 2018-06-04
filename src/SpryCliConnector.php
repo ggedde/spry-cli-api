@@ -62,6 +62,11 @@ class SpryCliConnector
         $logs = '';
         $lines = '100';
         $trace = false;
+        $with_routes = false;
+        $with_codes = false;
+        $with_tests = false;
+        $with_all = false;
+		$code_gap = 9;
 
         if(!empty($_SERVER['argv']))
         {
@@ -162,10 +167,43 @@ class SpryCliConnector
                 }
             }
 
+			$key = array_search('-cg', $args);
+            if($key === false)
+            {
+                $key = array_search('--code-gap', $args);
+            }
+            if($key !== false && isset($args[($key + 1)]))
+            {
+                if(is_numeric($args[($key + 1)]))
+                {
+                    $code_gap = floor($args[($key + 1)]);
+                }
+            }
+
             $key = array_search('--trace', $args);
             if($key !== false)
             {
                 $trace = true;
+            }
+
+            if(array_search('--with-routes', $args) !== false)
+            {
+                $with_routes = true;
+            }
+
+            if(array_search('--with-codes', $args) !== false)
+            {
+                $with_codes = true;
+            }
+
+            if(array_search('--with-tests', $args) !== false)
+            {
+                $with_tests = true;
+            }
+
+            if(array_search('--with-all', $args) !== false || array_search('-wa', $args) !== false)
+            {
+                $with_all = true;
             }
 
             foreach ($args as $value)
@@ -303,12 +341,230 @@ class SpryCliConnector
                 // Replace Component config_content
                 $component_contents = file_get_contents($new_component);
                 $component_contents = str_replace('class Example', 'class '.$component_name, $component_contents);
-                $component_contents = str_replace('examples_table', strtolower($component_sanitized), $component_contents);
+                $component_contents = str_replace('examples_table', SpryUtilities::plural(strtolower($component_sanitized)), $component_contents);
                 file_put_contents($new_component, $component_contents);
 
-                echo "\n\e[92mComponent Created Successfully!\e[0m\n".
-                $new_component."\n";
+				if($with_codes || $with_all)
+				{
+					if(!empty(Spry::config()->response_codes))
+					{
+						if($code_keys = array_keys(Spry::config()->response_codes))
+						{
+							sort($code_keys);
+							$last_code = intval(substr(strval(end($code_keys)), 1));
 
+							if($last_code)
+							{
+								// Increase by one to make sure it doesn't
+								// overlap when --code-gap is set to 0
+								$last_code++;
+
+								if($last_code < 100)
+								$last_code = 110;
+
+								$new_output = "\n\t// " . $component_name . "\n";
+								$new_output.= "\t2" . ($last_code + $code_gap) . " => ['en' => 'Successfully Retrieved " . SpryUtilities::single($component_name) . "'],\n";
+								$new_output.= "\t4" . ($last_code + $code_gap) . " => ['en' => 'No " . SpryUtilities::single($component_name) . " with that ID Found'],\n";
+								$new_output.= "\t5" . ($last_code + $code_gap) . " => ['en' => 'Error: Retrieving " . SpryUtilities::single($component_name) . "'],\n";
+
+								$new_output.= "\t2" . ($last_code + $code_gap + 1) . " => ['en' => 'Successfully Retrieved " . SpryUtilities::plural($component_name) . "'],\n";
+								$new_output.= "\t4" . ($last_code + $code_gap + 1) . " => ['en' => 'No " . SpryUtilities::plural($component_name) . " Found'],\n";
+								$new_output.= "\t5" . ($last_code + $code_gap + 1) . " => ['en' => 'Error: Retrieving " . SpryUtilities::plural($component_name) . "'],\n";
+
+								$new_output.= "\t2" . ($last_code + $code_gap + 2) . " => ['en' => 'Successfully Created " . SpryUtilities::single($component_name) . "'],\n";
+								$new_output.= "\t5" . ($last_code + $code_gap + 2) . " => ['en' => 'Error: Creating " . SpryUtilities::single($component_name) . "'],\n";
+
+								$new_output.= "\t2" . ($last_code + $code_gap + 3) . " => ['en' => 'Successfully Updated " . SpryUtilities::single($component_name) . "'],\n";
+								$new_output.= "\t4" . ($last_code + $code_gap + 3) . " => ['en' => 'No " . SpryUtilities::single($component_name) . " with that ID Found'],\n";
+								$new_output.= "\t5" . ($last_code + $code_gap + 3) . " => ['en' => 'Error: Updating " . SpryUtilities::single($component_name) . "'],\n";
+
+								$new_output.= "\t2" . ($last_code + $code_gap + 4) . " => ['en' => 'Successfully Deleted " . SpryUtilities::single($component_name) . "'],\n";
+								$new_output.= "\t5" . ($last_code + $code_gap + 4) . " => ['en' => 'Error: Deleting " . SpryUtilities::single($component_name) . "'],\n];";
+
+								// Update Component Codes
+								$component_contents = preg_replace('/000/', ($last_code + $code_gap), $component_contents, 1);
+								$component_contents = preg_replace('/000/', ($last_code + $code_gap + 1), $component_contents, 1);
+								$component_contents = preg_replace('/000/', ($last_code + $code_gap + 2), $component_contents, 1);
+								$component_contents = preg_replace('/000/', ($last_code + $code_gap + 3), $component_contents, 1);
+								$component_contents = preg_replace('/000/', ($last_code + $code_gap + 4), $component_contents, 1);
+								if(file_put_contents($new_component, $component_contents))
+								{
+									// Add Codes to Config file
+					                $config_contents = file_get_contents($config_file);
+
+									$pos_start = stripos($config_contents, '$config->response_codes');
+									if($pos_start !== false)
+									{
+										if($pos = stripos($config_contents, '];', $pos_start))
+										{
+											$new_config_contents = substr($config_contents, 0, $pos) . $new_output . substr($config_contents, ($pos + 2));
+											file_put_contents($config_file, $new_config_contents);
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+
+				if($with_routes || $with_all)
+				{
+					$new_output = "\n\t// " . $component_name . "\n";
+
+					$new_output.= "\t'/" . strtolower($component_sanitized) . "/get' => [\n";
+						$new_output.= "\t\t'label' => 'Get " . SpryUtilities::single($component_name) . "',\n";
+						$new_output.= "\t\t'controller' => '" . $component_name . "::get',\n";
+						$new_output.= "\t\t'access' => 'public',\n";
+						$new_output.= "\t\t'params' => [\n";
+							$new_output.= "\t\t\t'id' => [\n";
+								$new_output.= "\t\t\t\t'required' => true,\n";
+								$new_output.= "\t\t\t\t'int' => true\n";
+							$new_output.= "\t\t\t]\n";
+						$new_output.= "\t\t]\n";
+					$new_output.= "\t],\n";
+
+					$new_output.= "\t'/" . strtolower($component_sanitized) . "/get_all' => [\n";
+						$new_output.= "\t\t'label' => 'Get All " . SpryUtilities::plural($component_name) . "',\n";
+						$new_output.= "\t\t'controller' => '" . $component_name . "::get_all',\n";
+						$new_output.= "\t\t'access' => 'public',\n";
+						$new_output.= "\t\t'params' => []\n";
+					$new_output.= "\t],\n";
+
+					$new_output.= "\t'/" . strtolower($component_sanitized) . "/insert' => [\n";
+						$new_output.= "\t\t'label' => 'Insert " . SpryUtilities::single($component_name) . "',\n";
+						$new_output.= "\t\t'controller' => '" . $component_name . "::insert',\n";
+						$new_output.= "\t\t'access' => 'public',\n";
+						$new_output.= "\t\t'params' => [\n";
+							$new_output.= "\t\t\t'name' => [\n";
+								$new_output.= "\t\t\t\t'required' => true,\n";
+								$new_output.= "\t\t\t\t'minlength' => 1\n";
+							$new_output.= "\t\t\t],\n";
+							$new_output.= "\t\t\t'email' => [\n";
+								$new_output.= "\t\t\t\t'required' => true,\n";
+								$new_output.= "\t\t\t\t'email' => true\n";
+							$new_output.= "\t\t\t]\n";
+						$new_output.= "\t\t]\n";
+					$new_output.= "\t],\n";
+
+					$new_output.= "\t'/" . strtolower($component_sanitized) . "/update' => [\n";
+						$new_output.= "\t\t'label' => 'Update " . SpryUtilities::single($component_name) . "',\n";
+						$new_output.= "\t\t'controller' => '" . $component_name . "::update',\n";
+						$new_output.= "\t\t'access' => 'public',\n";
+						$new_output.= "\t\t'params' => [\n";
+							$new_output.= "\t\t\t'id' => [\n";
+								$new_output.= "\t\t\t\t'required' => true,\n";
+								$new_output.= "\t\t\t\t'int' => true\n";
+							$new_output.= "\t\t\t],\n";
+							$new_output.= "\t\t\t'name' => [\n";
+								$new_output.= "\t\t\t\t'minlength' => 1\n";
+							$new_output.= "\t\t\t],\n";
+							$new_output.= "\t\t\t'email' => [\n";
+								$new_output.= "\t\t\t\t'email' => true\n";
+							$new_output.= "\t\t\t]\n";
+						$new_output.= "\t\t]\n";
+					$new_output.= "\t],\n";
+
+					$new_output.= "\t'/" . strtolower($component_sanitized) . "/delete' => [\n";
+						$new_output.= "\t\t'label' => 'Delete " . SpryUtilities::single($component_name) . "',\n";
+						$new_output.= "\t\t'controller' => '" . $component_name . "::delete',\n";
+						$new_output.= "\t\t'access' => 'public',\n";
+						$new_output.= "\t\t'params' => [\n";
+							$new_output.= "\t\t\t'id' => [\n";
+								$new_output.= "\t\t\t\t'required' => true,\n";
+								$new_output.= "\t\t\t\t'int' => true\n";
+							$new_output.= "\t\t\t]\n";
+						$new_output.= "\t\t]\n";
+					$new_output.= "\t],\n];";
+
+					// Add Codes to Config file
+					$config_contents = file_get_contents($config_file);
+
+					$pos_start = stripos($config_contents, '$config->routes');
+					if($pos_start !== false)
+					{
+						if($pos = stripos($config_contents, '];', $pos_start))
+						{
+							$new_config_contents = substr($config_contents, 0, $pos) . $new_output . substr($config_contents, ($pos + 2));
+							file_put_contents($config_file, $new_config_contents);
+						}
+					}
+				}
+
+				if($with_tests || $with_all)
+				{
+					$new_output = "\n\t// " . $component_name . "\n";
+
+					$new_output.= "\t'" . strtolower($component_sanitized) . "_get_all' => [\n";
+						$new_output.= "\t\t'label' => 'Get All " . SpryUtilities::plural($component_name) . "',\n";
+						$new_output.= "\t\t'route' => '/" . strtolower($component_sanitized) . "/get_all',\n";
+						$new_output.= "\t\t'params' => [],\n";
+						$new_output.= "\t\t'expect' => [\n";
+							$new_output.= "\t\t\t'code' => 2" . (!empty($last_code) ? ($last_code + $code_gap + 1) : '2000') . ",\n";
+						$new_output.= "\t\t]\n";
+					$new_output.= "\t],\n";
+
+					$new_output.= "\t'" . strtolower($component_sanitized) . "_insert' => [\n";
+						$new_output.= "\t\t'label' => 'Insert " . SpryUtilities::single($component_name) . "',\n";
+						$new_output.= "\t\t'route' => '/" . strtolower($component_sanitized) . "/insert',\n";
+						$new_output.= "\t\t'params' => [\n";
+							$new_output.= "\t\t\t'name' => 'Bob',\n";
+							$new_output.= "\t\t\t'email' => 'bobemail@email.bob'\n";
+						$new_output.= "\t\t],\n";
+						$new_output.= "\t\t'expect' => [\n";
+							$new_output.= "\t\t\t'code' => 2" . (!empty($last_code) ? ($last_code + $code_gap + 2) : '2000') . ",\n";
+						$new_output.= "\t\t]\n";
+					$new_output.= "\t],\n";
+
+					$new_output.= "\t'" . strtolower($component_sanitized) . "_get' => [\n";
+						$new_output.= "\t\t'label' => 'Get " . SpryUtilities::single($component_name) . "',\n";
+						$new_output.= "\t\t'route' => '/" . strtolower($component_sanitized) . "/get',\n";
+						$new_output.= "\t\t'params' => [\n";
+							$new_output.= "\t\t\t'id' => '{id}'\n";
+						$new_output.= "\t\t],\n";
+						$new_output.= "\t\t'expect' => [\n";
+							$new_output.= "\t\t\t'code' => 2" . (!empty($last_code) ? ($last_code + $code_gap) : '2000') . ",\n";
+						$new_output.= "\t\t]\n";
+					$new_output.= "\t],\n";
+
+					$new_output.= "\t'" . strtolower($component_sanitized) . "_update' => [\n";
+						$new_output.= "\t\t'label' => 'Update " . SpryUtilities::single($component_name) . "',\n";
+						$new_output.= "\t\t'route' => '/" . strtolower($component_sanitized) . "/update',\n";
+						$new_output.= "\t\t'params' => [\n";
+							$new_output.= "\t\t\t'id' => '{id}',\n";
+							$new_output.= "\t\t\t'name' => 'Bob Bobby',\n";
+							$new_output.= "\t\t\t'email' => 'bob123email@email.bob'\n";
+						$new_output.= "\t\t],\n";
+						$new_output.= "\t\t'expect' => [\n";
+							$new_output.= "\t\t\t'code' => 2" . (!empty($last_code) ? ($last_code + $code_gap + 3) : '2000') . ",\n";
+						$new_output.= "\t\t]\n";
+					$new_output.= "\t],\n";
+
+					$new_output.= "\t'" . strtolower($component_sanitized) . "_delete' => [\n";
+						$new_output.= "\t\t'label' => 'Delete " . SpryUtilities::single($component_name) . "',\n";
+						$new_output.= "\t\t'route' => '/" . strtolower($component_sanitized) . "/delete',\n";
+						$new_output.= "\t\t'params' => [\n";
+							$new_output.= "\t\t\t'id' => '{id}'\n";
+						$new_output.= "\t\t],\n";
+						$new_output.= "\t\t'expect' => [\n";
+							$new_output.= "\t\t\t'code' => 2" . (!empty($last_code) ? ($last_code + $code_gap + 4) : '2000') . ",\n";
+						$new_output.= "\t\t]\n";
+					$new_output.= "\t],\n];";
+
+					// Add Codes to Config file
+					$config_contents = file_get_contents($config_file);
+
+					$pos_start = stripos($config_contents, '$config->tests');
+					if($pos_start !== false)
+					{
+						if($pos = stripos($config_contents, '];', $pos_start))
+						{
+							$new_config_contents = substr($config_contents, 0, $pos) . $new_output . substr($config_contents, ($pos + 2));
+							file_put_contents($config_file, $new_config_contents);
+						}
+					}
+				}
+
+                echo "\n\e[92mComponent Created Successfully!\e[0m\n".$new_component."\n";
 
             break;
 
