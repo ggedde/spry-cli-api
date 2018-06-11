@@ -295,8 +295,9 @@ class SpryCliConnector
         {
             die("\e[91mERROR:\e[0m No Config File Found. Run SpryCli from the same folder that contains your 'config.php' file or specify the config file with --config");
         }
-        Spry::load_config($config_file);
-        spl_autoload_register(['Spry\\Spry', 'autoloader']);
+
+		// Load the Main Config Data and Set Autoloader and Configure Filters
+		Spry::configure($config_file);
 
         switch($command)
         {
