@@ -265,7 +265,7 @@ class SpryCliConnector
             "\e[1mclear [object]                \e[0m- Clears specific objects. Currently only supports 'logs'.\n".
             "  ex.     spry clear logs    (clears both API and PHP log files. Does not remove archived logs.)\n\n".
             "\e[1mcomponent | c [component] [--options]     \e[0m- Generate a new Component and add it to your component directory.\n".
-			"  [component]                 - php | api.\n".
+			"  [component]                 - Name of new Component. Classes will follow psr-4 format\n".
             "  --with-routes               - Add default Routes to the config file.\n".
             "  --with-codes                - Add default Response Codes to the config file.\n".
             "  --with-tests                - Add default Tests to the config file.\n".
@@ -291,8 +291,8 @@ class SpryCliConnector
             "  --force   |  -f             - Delete Fields, Tables and other data that does not match the new Scheme.\n\n".
             "\e[1mnew | n [project]             \e[0m- Creates a new project and initiates it.\n".
             "  [project]                   - Name of project/directory to create and initialize.\n\n".
-            "\e[1mprint | p [property]           \e[0m- Print the Property from the config in json.\n".
-            "  [property]                  - Name of Property from the config to show data from.\n\n".
+            "\e[1mprint | p [property]          \e[0m- Print the Property from the config in json.\n".
+            "  [property]                  - Name of Property from the config to show data from.\n".
 			"  ex.     spry print routes\n".
             "  ex.     spry print codes\n".
             "  ex.     spry p hooks\n".
