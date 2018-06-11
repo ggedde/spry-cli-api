@@ -49,7 +49,7 @@ class SpryCliConnector
             'v' => 'version',
             'l' => 'logs',
             'log' => 'logs',
-            's' => 'show',
+            'p' => 'print',
         ];
         $command = '';
         $singletest = '';
@@ -62,7 +62,7 @@ class SpryCliConnector
         $port = 8000;
         $logs = '';
         $lines = '100';
-		$show = '';
+		$print = '';
         $trace = false;
         $with_routes = false;
         $with_codes = false;
@@ -101,14 +101,14 @@ class SpryCliConnector
                 $hash = $args[($key + 1)];
             }
 
-			$key = array_search('s', $args);
+			$key = array_search('p', $args);
             if($key === false)
             {
-                $key = array_search('show', $args);
+                $key = array_search('print', $args);
             }
             if($key !== false && isset($args[($key + 1)]) && strpos($args[($key + 1)], '--') === false)
             {
-                $show = $args[($key + 1)];
+                $print = $args[($key + 1)];
             }
 
             $key = array_search('u', $args);
@@ -264,41 +264,47 @@ class SpryCliConnector
             "List of Commands and arguments:\n\n".
             "\e[1mclear [object]                \e[0m- Clears specific objects. Currently only supports 'logs'.\n".
             "  ex.     spry clear logs    (clears both API and PHP log files. Does not remove archived logs.)\n\n".
-            "\e[1mcomponent | c [component]     \e[0m- Generate a new Component and add it to your component directory.\n".
-            "  ex.     spry component sales_reps    (component classes will follow psr-4 format. ie SalesReps)\n\n".
+            "\e[1mcomponent | c [component] [--options]     \e[0m- Generate a new Component and add it to your component directory.\n".
+			"  [component]                 - php | api.\n".
+            "  --with-routes               - Add default Routes to the config file.\n".
+            "  --with-codes                - Add default Response Codes to the config file.\n".
+            "  --with-tests                - Add default Tests to the config file.\n".
+            "  --with-all                  - Add all defaults to the config file.\n".
+			"  ex.     spry component sales_reps       (component classes will follow psr-4 format. ie SalesReps)\n".
+			"  ex.     spry c sales_reps --with-all    (Adds SalesReps and adds Routes, Response Codes, and Tests to the config file)\n\n".
             "\e[1mhash | h [value]              \e[0m- Hash a value that procedes it using the salt in the config file.\n".
             "  ex.     spry hash something_to_hash_123\n".
-            "  ex.     spry hash \"hash with spaces 123\"\n\n".
+            "  ex.     spry h \"hash with spaces 123\"\n\n".
             "\e[1mhelp | -h | --help            \e[0m- Display Information about Spry-cli.\n\n".
             "\e[1minit | i [public_directory]   \e[0m- Initiate a Spry Setup and Configuration with default project.\n".
             "  [public_directory]          - Creates a public endpoint directory with index.php.\n".
             "  ex.     spry init\n".
-            "  ex.     spry init public     (creates a folder called 'public' and an index.php pointer file)\n\n".
+            "  ex.     spry i public        (creates a folder called 'public' and an index.php pointer file)\n\n".
             "\e[1mlogs | l [type] [--options]   \e[0m- Displays contents of log files.\n".
             "  [type]                      - php | api.\n".
             "  --lines                     - Number of lines to display. Default 100.\n".
             "  --trace                     - Only applies to 'type=php'. Adds trace to display.\n".
             "  ex.     spry logs api\n".
-            "  ex.     spry logs php --lines 10 --trace\n\n".
+            "  ex.     spry l php --lines 10 --trace\n\n".
             "\e[1mmigrate | m [--options]       \e[0m- Migrate the Database Schema.\n".
             "  --dryrun  |  -d             - Only check for what will be migrated and report back. No actions will be taken.\n".
             "  --force   |  -f             - Delete Fields, Tables and other data that does not match the new Scheme.\n\n".
             "\e[1mnew | n [project]             \e[0m- Creates a new project and initiates it.\n".
             "  [project]                   - Name of project/directory to create and initialize.\n\n".
-            "\e[1mshow | s [property]           \e[0m- Gets the Property from the config.\n".
+            "\e[1mprint | p [property]           \e[0m- Print the Property from the config in json.\n".
             "  [property]                  - Name of Property from the config to show data from.\n\n".
-			"  ex.     spry show routes\n".
-            "  ex.     spry show codes\n".
-            "  ex.     spry show hooks\n".
-            "  ex.     spry show filters\n\n".
+			"  ex.     spry print routes\n".
+            "  ex.     spry print codes\n".
+            "  ex.     spry p hooks\n".
+            "  ex.     spry p filters\n\n".
             "\e[1mtest | t [test] [--options]   \e[0m- Run a Test or all Tests if a Test name is not specified.\n".
             "  --verbose                   - List out full details of the Test(s).\n".
             "  --repeat                    - Repeat the test(s) a number of times.\n".
             "  --skip                      - Run all tests even on Failed tests. Skips Fails.\n".
             "  ex.     spry test\n".
             "  ex.     spry test --verbose\n".
-            "  ex.     spry test connection --verbose --repeat 4\n".
-            "  ex.     spry test '{\"route\":\"/example/add\", \"params\":{\"name\":\"test\"}, \"expect\":{\"code\": 2000}}'\n\n".
+            "  ex.     spry t connection --verbose --repeat 4\n".
+            "  ex.     spry t '{\"route\":\"/example/add\", \"params\":{\"name\":\"test\"}, \"expect\":{\"code\": 2000}}'\n\n".
             "\e[1mversion | v | -v | --version  \e[0m- Display the Version of the Spry Instalation.\n\n".
             "\e[1mup | u [port] [directory]     \e[0m- Start the Built in PHP Spry Server.\n".
             "  [port]                      - default is 8000.\n".
@@ -772,21 +778,21 @@ class SpryCliConnector
 
             break;
 
-			case 'show':
+			case 'print':
 
-                if(!$show)
+                if(!$print)
                 {
                     die("\e[91mERROR:\e[0m Missing Config Property.\"\"");
                 }
 
 				$config = Spry::config();
 
-				if(!isset($config->$show) && $show === 'codes')
+				if(!isset($config->$print) && $print === 'codes')
                 {
-					$show = 'response_codes';
+					$print = 'response_codes';
 				}
 
-				if(!isset($config->$show))
+				if(!isset($config->$print))
                 {
                     die("\e[91mERROR:\e[0m Config Property not found.\"\"");
                 }
@@ -794,7 +800,7 @@ class SpryCliConnector
 				$config->salt = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
 				$config->db['password'] = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
 
-                die(stripslashes(json_encode($config->$show, JSON_PRETTY_PRINT)));
+                die(stripslashes(json_encode($config->$print, JSON_PRETTY_PRINT)));
 
             break;
 
