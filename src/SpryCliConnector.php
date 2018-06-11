@@ -49,6 +49,7 @@ class SpryCliConnector
             'v' => 'version',
             'l' => 'logs',
             'log' => 'logs',
+            's' => 'show',
         ];
         $command = '';
         $singletest = '';
@@ -61,6 +62,7 @@ class SpryCliConnector
         $port = 8000;
         $logs = '';
         $lines = '100';
+		$show = '';
         $trace = false;
         $with_routes = false;
         $with_codes = false;
@@ -97,6 +99,16 @@ class SpryCliConnector
             if($key !== false && isset($args[($key + 1)]) && strpos($args[($key + 1)], '--') === false)
             {
                 $hash = $args[($key + 1)];
+            }
+
+			$key = array_search('s', $args);
+            if($key === false)
+            {
+                $key = array_search('show', $args);
+            }
+            if($key !== false && isset($args[($key + 1)]) && strpos($args[($key + 1)], '--') === false)
+            {
+                $show = $args[($key + 1)];
             }
 
             $key = array_search('u', $args);
@@ -273,6 +285,12 @@ class SpryCliConnector
             "  --force   |  -f             - Delete Fields, Tables and other data that does not match the new Scheme.\n\n".
             "\e[1mnew | n [project]             \e[0m- Creates a new project and initiates it.\n".
             "  [project]                   - Name of project/directory to create and initialize.\n\n".
+            "\e[1mshow | s [property]           \e[0m- Gets the Property from the config.\n".
+            "  [property]                  - Name of Property from the config to show data from.\n\n".
+			"  ex.     spry show routes\n".
+            "  ex.     spry show codes\n".
+            "  ex.     spry show hooks\n".
+            "  ex.     spry show filters\n\n".
             "\e[1mtest | t [test] [--options]   \e[0m- Run a Test or all Tests if a Test name is not specified.\n".
             "  --verbose                   - List out full details of the Test(s).\n".
             "  --repeat                    - Repeat the test(s) a number of times.\n".
@@ -751,6 +769,32 @@ class SpryCliConnector
                         echo implode("\n", $response['body']);
                     }
                 }
+
+            break;
+
+			case 'show':
+
+                if(!$show)
+                {
+                    die("\e[91mERROR:\e[0m Missing Config Property.\"\"");
+                }
+
+				$config = Spry::config();
+
+				if(!isset($config->$show) && $show === 'codes')
+                {
+					$show = 'response_codes';
+				}
+
+				if(!isset($config->$show))
+                {
+                    die("\e[91mERROR:\e[0m Config Property not found.\"\"");
+                }
+
+				$config->salt = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
+				$config->db['password'] = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
+
+                die(stripslashes(json_encode($config->$show, JSON_PRETTY_PRINT)));
 
             break;
 
