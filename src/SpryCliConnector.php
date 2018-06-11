@@ -276,6 +276,7 @@ class SpryCliConnector
             "\e[1mtest | t [test] [--options]   \e[0m- Run a Test or all Tests if a Test name is not specified.\n".
             "  --verbose                   - List out full details of the Test(s).\n".
             "  --repeat                    - Repeat the test(s) a number of times.\n".
+            "  --skip                      - Run all tests even on Failed tests. Skips Fails.\n".
             "  ex.     spry test\n".
             "  ex.     spry test --verbose\n".
             "  ex.     spry test connection --verbose --repeat 4\n".
