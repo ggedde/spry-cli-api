@@ -782,7 +782,7 @@ class SpryCliConnector
 
                 if(!$print)
                 {
-                    die("\e[91mERROR:\e[0m Missing Config Property.\"\"");
+                    die("\e[91mERROR:\e[0m Missing Config Property.");
                 }
 
 				$config = Spry::config();
@@ -794,7 +794,7 @@ class SpryCliConnector
 
 				if(!isset($config->$print))
                 {
-                    die("\e[91mERROR:\e[0m Config Property not found.\"\"");
+                    die("\e[91mERROR:\e[0m Config Property not found.");
                 }
 
 				$config->salt = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
