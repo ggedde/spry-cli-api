@@ -578,7 +578,7 @@ class SpryCliConnector
 						$new_output.= "\t\t'label' => 'Get " . SpryUtilities::single($component_name) . " Empty',\n";
 						$new_output.= "\t\t'route' => '/" . strtolower($component_sanitized) . "/get',\n";
 						$new_output.= "\t\t'params' => [\n";
-							$new_output.= "\t\t\t'id' => '0'\n";
+							$new_output.= "\t\t\t'id' => '-1'\n";
 						$new_output.= "\t\t],\n";
 						$new_output.= "\t\t'expect' => [\n";
 							$new_output.= "\t\t\t'code' => 4" . (!empty($last_code) ? ($last_code + $code_gap) : '4000') . ",\n";
