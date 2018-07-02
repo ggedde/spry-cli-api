@@ -69,6 +69,7 @@ class SpryCliConnector
         $with_tests = false;
         $with_all = false;
 		$code_gap = 9;
+		$keep = false;
 
         if(!empty($_SERVER['argv']))
         {
@@ -89,6 +90,12 @@ class SpryCliConnector
             if($key !== false)
             {
                 $skip = true;
+            }
+
+			$key = array_search('--keep', $args);
+            if($key !== false)
+            {
+                $keep = true;
             }
 
             $key = array_search('h', $args);
@@ -262,8 +269,10 @@ class SpryCliConnector
             echo "Spry -v ".Spry::get_version()."\n".
             "Usage: spry [command] [value] [--argument] [--argument]... \n\n".
             "List of Commands and arguments:\n\n".
-            "\e[1mclear [object]                \e[0m- Clears specific objects. Currently only supports 'logs'.\n".
-            "  ex.     spry clear logs    (clears both API and PHP log files. Does not remove archived logs.)\n\n".
+            "\e[1mclear [object]                \e[0m- Clears specific objects.\n".
+			"  [object]                    - logs | tests.\n".
+			"  ex.     spry clear logs    (clears both API and PHP log files. Does not remove archived logs.)\n".
+			"  ex.     spry clear tests   (deletes all test data in the database.)\n\n".
             "\e[1mcomponent | c [component] [--options]     \e[0m- Generate a new Component and add it to your component directory.\n".
 			"  [component]                 - Name of new Component. Classes will follow psr-4 format\n".
             "  --with-routes               - Add default Routes to the config file.\n".
@@ -297,10 +306,12 @@ class SpryCliConnector
             "  ex.     spry print codes\n".
             "  ex.     spry p hooks\n".
             "  ex.     spry p filters\n\n".
-            "\e[1mtest | t [test] [--options]   \e[0m- Run a Test or all Tests if a Test name is not specified.\n".
-            "  --verbose                   - List out full details of the Test(s).\n".
+            "\e[1mtest | t [test] [--options]   \e[0m- Run a Test or all Tests if a Test name is not specified. Then remove all test data in the database.\n".
+			"  [test]                      - Name of test to run.  Leave blank for all tests.\n".
+			"  --verbose                   - List out full details of the Test(s).\n".
             "  --repeat                    - Repeat the test(s) a number of times.\n".
             "  --skip                      - Run all tests even on Failed tests. Skips Fails.\n".
+            "  --keep                      - Keeps the data in the Database.\n".
             "  ex.     spry test\n".
             "  ex.     spry test --verbose\n".
             "  ex.     spry t connection --verbose --repeat 4\n".
@@ -987,6 +998,18 @@ class SpryCliConnector
                     echo "\n\e[92mTotal Time:\e[0m (".number_format($total_time, 6)." sec)\n";
                     echo "\e[92mAverage Time:\e[0m (".number_format(($total_time/$repeat), 6)." sec)\n";
                 }
+
+				if(!$keep)
+				{
+					if(Spry::db()->deleteTestData())
+					{
+						echo "\e[92mCleared Test Data!\e[0m\n";
+					}
+					else
+					{
+						"\e[91mERROR:\e[0m Unknown Error Clearing Test Data.\n";
+					}
+				}
 
             break;
 
