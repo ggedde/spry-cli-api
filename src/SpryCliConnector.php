@@ -532,11 +532,13 @@ class SpryCliConnector
 					$new_output = "\n\t// " . $component_name . "\n";
 
 					$new_output.= "\t'" . strtolower($component_sanitized) . "_get_all' => [\n";
-						$new_output.= "\t\t'label' => 'Get All " . SpryUtilities::plural($component_name) . "',\n";
+						$new_output.= "\t\t'label' => 'Get All " . SpryUtilities::plural($component_name) . " Empty',\n";
 						$new_output.= "\t\t'route' => '/" . strtolower($component_sanitized) . "/get_all',\n";
-						$new_output.= "\t\t'params' => [],\n";
+						$new_output.= "\t\t'params' => [\n";
+							$new_output.= "\t\t\t'name' => '!'\n";
+						$new_output.= "\t\t],\n";
 						$new_output.= "\t\t'expect' => [\n";
-							$new_output.= "\t\t\t'code' => 2" . (!empty($last_code) ? ($last_code + $code_gap + 1) : '2000') . ",\n";
+							$new_output.= "\t\t\t'code' => 4" . (!empty($last_code) ? ($last_code + $code_gap + 1) : '4000') . ",\n";
 						$new_output.= "\t\t]\n";
 					$new_output.= "\t],\n";
 
@@ -545,10 +547,19 @@ class SpryCliConnector
 						$new_output.= "\t\t'route' => '/" . strtolower($component_sanitized) . "/insert',\n";
 						$new_output.= "\t\t'params' => [\n";
 							$new_output.= "\t\t\t'name' => 'Bob',\n";
-							$new_output.= "\t\t\t'email' => 'bobemail@email.bob'\n";
+							$new_output.= "\t\t\t'email' => 'bob'.time().'@gmail.com'\n";
 						$new_output.= "\t\t],\n";
 						$new_output.= "\t\t'expect' => [\n";
 							$new_output.= "\t\t\t'code' => 2" . (!empty($last_code) ? ($last_code + $code_gap + 2) : '2000') . ",\n";
+						$new_output.= "\t\t]\n";
+					$new_output.= "\t],\n";
+
+					$new_output.= "\t'" . strtolower($component_sanitized) . "_get_all' => [\n";
+						$new_output.= "\t\t'label' => 'Get All " . SpryUtilities::plural($component_name) . "',\n";
+						$new_output.= "\t\t'route' => '/" . strtolower($component_sanitized) . "/get_all',\n";
+						$new_output.= "\t\t'params' => [],\n";
+						$new_output.= "\t\t'expect' => [\n";
+							$new_output.= "\t\t\t'code' => 2" . (!empty($last_code) ? ($last_code + $code_gap + 1) : '2000') . ",\n";
 						$new_output.= "\t\t]\n";
 					$new_output.= "\t],\n";
 
@@ -556,10 +567,21 @@ class SpryCliConnector
 						$new_output.= "\t\t'label' => 'Get " . SpryUtilities::single($component_name) . "',\n";
 						$new_output.= "\t\t'route' => '/" . strtolower($component_sanitized) . "/get',\n";
 						$new_output.= "\t\t'params' => [\n";
-							$new_output.= "\t\t\t'id' => '{id}'\n";
+							$new_output.= "\t\t\t'id' => '{{body.id}}'\n";
 						$new_output.= "\t\t],\n";
 						$new_output.= "\t\t'expect' => [\n";
 							$new_output.= "\t\t\t'code' => 2" . (!empty($last_code) ? ($last_code + $code_gap) : '2000') . ",\n";
+						$new_output.= "\t\t]\n";
+					$new_output.= "\t],\n";
+
+					$new_output.= "\t'" . strtolower($component_sanitized) . "_get' => [\n";
+						$new_output.= "\t\t'label' => 'Get " . SpryUtilities::single($component_name) . " Empty',\n";
+						$new_output.= "\t\t'route' => '/" . strtolower($component_sanitized) . "/get',\n";
+						$new_output.= "\t\t'params' => [\n";
+							$new_output.= "\t\t\t'id' => '0'\n";
+						$new_output.= "\t\t],\n";
+						$new_output.= "\t\t'expect' => [\n";
+							$new_output.= "\t\t\t'code' => 4" . (!empty($last_code) ? ($last_code + $code_gap) : '4000') . ",\n";
 						$new_output.= "\t\t]\n";
 					$new_output.= "\t],\n";
 
@@ -567,9 +589,9 @@ class SpryCliConnector
 						$new_output.= "\t\t'label' => 'Update " . SpryUtilities::single($component_name) . "',\n";
 						$new_output.= "\t\t'route' => '/" . strtolower($component_sanitized) . "/update',\n";
 						$new_output.= "\t\t'params' => [\n";
-							$new_output.= "\t\t\t'id' => '{id}',\n";
+							$new_output.= "\t\t\t'id' => '{{body.id}}',\n";
 							$new_output.= "\t\t\t'name' => 'Bob Bobby',\n";
-							$new_output.= "\t\t\t'email' => 'bob123email@email.bob'\n";
+							$new_output.= "\t\t\t'email' => 'bob'.time().'@gmail.com'\n";
 						$new_output.= "\t\t],\n";
 						$new_output.= "\t\t'expect' => [\n";
 							$new_output.= "\t\t\t'code' => 2" . (!empty($last_code) ? ($last_code + $code_gap + 3) : '2000') . ",\n";
@@ -580,7 +602,7 @@ class SpryCliConnector
 						$new_output.= "\t\t'label' => 'Delete " . SpryUtilities::single($component_name) . "',\n";
 						$new_output.= "\t\t'route' => '/" . strtolower($component_sanitized) . "/delete',\n";
 						$new_output.= "\t\t'params' => [\n";
-							$new_output.= "\t\t\t'id' => '{id}'\n";
+							$new_output.= "\t\t\t'id' => '{body.id}'\n";
 						$new_output.= "\t\t],\n";
 						$new_output.= "\t\t'expect' => [\n";
 							$new_output.= "\t\t\t'code' => 2" . (!empty($last_code) ? ($last_code + $code_gap + 4) : '2000') . ",\n";
@@ -914,6 +936,7 @@ class SpryCliConnector
 							$wildcard = str_replace('*', '', $singletest);
 						}
 
+                        $last_last_response = null;
                         $last_response = null;
 
                         $failed_tests = [];
@@ -939,7 +962,11 @@ class SpryCliConnector
 
                             foreach ($test['params'] as $param_key => $param)
                 			{
-                                if(!empty($last_response) && substr($param, 0, 1) === '{' && substr($param, -1) === '}')
+                                if(!empty($last_last_response) && substr($param, 0, 2) === '{{' && substr($param, -2) === '}}')
+                                {
+                                    $test['params'][$param_key] = SpryUtilities::extractKeyValue(substr($param, 2, -2), $last_last_response);
+                                }
+								else if(!empty($last_response) && substr($param, 0, 1) === '{' && substr($param, -1) === '}')
                                 {
                                     $test['params'][$param_key] = SpryUtilities::extractKeyValue(substr($param, 1, -1), $last_response);
                                 }
@@ -978,6 +1005,7 @@ class SpryCliConnector
 								break;
 							}
 
+							$last_last_response = $last_response;
                             $last_response = (!empty($response['body']['full_response']) ? $response['body']['full_response'] : null);
                         }
 
