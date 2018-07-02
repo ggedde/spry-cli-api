@@ -531,7 +531,7 @@ class SpryCliConnector
 				{
 					$new_output = "\n\t// " . $component_name . "\n";
 
-					$new_output.= "\t'" . strtolower($component_sanitized) . "_get_all' => [\n";
+					$new_output.= "\t'" . strtolower($component_sanitized) . "_get_all_empty' => [\n";
 						$new_output.= "\t\t'label' => 'Get All " . SpryUtilities::plural($component_name) . " Empty',\n";
 						$new_output.= "\t\t'route' => '/" . strtolower($component_sanitized) . "/get_all',\n";
 						$new_output.= "\t\t'params' => [\n";
@@ -574,7 +574,7 @@ class SpryCliConnector
 						$new_output.= "\t\t]\n";
 					$new_output.= "\t],\n";
 
-					$new_output.= "\t'" . strtolower($component_sanitized) . "_get' => [\n";
+					$new_output.= "\t'" . strtolower($component_sanitized) . "_get_empty' => [\n";
 						$new_output.= "\t\t'label' => 'Get " . SpryUtilities::single($component_name) . " Empty',\n";
 						$new_output.= "\t\t'route' => '/" . strtolower($component_sanitized) . "/get',\n";
 						$new_output.= "\t\t'params' => [\n";
