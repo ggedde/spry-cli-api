@@ -967,7 +967,7 @@ class SpryCliConnector
 		                			{
 										$replacements = [];
 
-										preg_match_all('/\{([^\{\.]+)\.([^\}]+)\}/gm', $property, $matches);
+										preg_match_all('/\{([^\{\.]+)\.([^\}]+)\}/m', $property, $matches);
 
 										if(!empty($matches) && is_array($matches))
 										{
