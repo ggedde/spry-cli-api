@@ -936,8 +936,7 @@ class SpryCliConnector
 							$wildcard = str_replace('*', '', $singletest);
 						}
 
-                        $last_last_response = null;
-                        $last_response = null;
+                        $last_responses = [];
 
                         $failed_tests = [];
 
@@ -960,21 +959,41 @@ class SpryCliConnector
 								continue;
 							}
 
-                            foreach ($test['params'] as $param_key => $param)
-                			{
-                                if(!empty($last_last_response) && substr($param, 0, 2) === '{{' && substr($param, -2) === '}}')
-                                {
-                                    $test['params'][$param_key] = SpryUtilities::extractKeyValue(substr($param, 2, -2), $last_last_response);
-                                }
-								else if(!empty($last_response) && substr($param, 0, 1) === '{' && substr($param, -1) === '}')
-                                {
-                                    $test['params'][$param_key] = SpryUtilities::extractKeyValue(substr($param, 1, -1), $last_response);
-                                }
-                			}
+							foreach(['params', 'headers'] as $property)
+							{
+								if(!empty($test[$property]))
+								{
+		                            foreach ($test[$property] as $property_key => $property)
+		                			{
+										$replacements = [];
+
+										preg_match_all('/\{([^\{\.]+)\.([^\}]+)\}/gm', $property, $matches);
+
+										if(!empty($matches) && is_array($matches))
+										{
+											foreach($matches as $match)
+											{
+												if(!empty($last_responses[$match[1]]))
+												{
+													$replacements[$match[0]] = SpryUtilities::extractKeyValue($match[2], $last_responses[$match[1]]);
+												}
+											}
+										}
+
+		                                if(!empty($replacements))
+										{
+											$test[$property][$property_key] = str_replace(array_keys($replacements), array_values($replacements), $test[$property][$property_key]);
+										}
+		                			}
+								}
+							}
 
                             echo "\nRunning Test: ".(!empty($test['label']) ? $test['label'] : $test_name)."...\n";
                             $time_start = microtime(true);
+
+							// Run Test
                             $response = SpryUtilities::test($test);
+
                             $time = number_format(microtime(true) - $time_start, 6);
                             $total_time+= $time;
                             if(!empty($response['status']) && $response['status'] === 'error')
@@ -1005,8 +1024,7 @@ class SpryCliConnector
 								break;
 							}
 
-							$last_last_response = $last_response;
-                            $last_response = (!empty($response['body']['full_response']) ? $response['body']['full_response'] : null);
+                            $last_responses[$test_name] = (!empty($response['body']['full_response']) ? $response['body']['full_response'] : null);
                         }
 
                         if(empty($failed_tests))
