@@ -969,13 +969,13 @@ class SpryCliConnector
 
 										preg_match_all('/\{([^\{\.]+)\.([^\}]+)\}/m', $property, $matches);
 
-										if(!empty($matches) && is_array($matches))
+										if(!empty($matches[0]) && !empty($matches[1]) && !empty($matches[2]) && is_array($matches[0]))
 										{
-											foreach($matches as $match)
+											foreach($matches[0] as $match_key => $match)
 											{
-												if(!empty($last_responses[$match[1]]))
+												if(!empty($last_responses[$matches[1][$match_key]]))
 												{
-													$replacements[$match[0]] = SpryUtilities::extractKeyValue($match[2], $last_responses[$match[1]]);
+													$replacements[$match] = SpryUtilities::extractKeyValue($matches[2][$match_key], $last_responses[$matches[1][$match_key]]);
 												}
 											}
 										}
