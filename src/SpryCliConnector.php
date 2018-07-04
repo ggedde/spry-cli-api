@@ -963,11 +963,11 @@ class SpryCliConnector
 							{
 								if(!empty($test[$property]))
 								{
-		                            foreach ($test[$property] as $property_key => $property)
+		                            foreach ($test[$property] as $property_key => $property_value)
 		                			{
 										$replacements = [];
 
-										preg_match_all('/\{([^\{\.]+)\.([^\}]+)\}/m', $property, $matches);
+										preg_match_all('/\{([^\{\.]+)\.([^\}]+)\}/m', $property_value, $matches);
 
 										if(!empty($matches[0]) && !empty($matches[1]) && !empty($matches[2]) && is_array($matches[0]))
 										{
