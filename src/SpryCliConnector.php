@@ -56,6 +56,7 @@ class SpryCliConnector
         $hash = '';
         $component = '';
         $clear = '';
+        $debug = false;
         $verbose = false;
         $skip = false;
         $repeat = 1;
@@ -96,6 +97,12 @@ class SpryCliConnector
             if($key !== false)
             {
                 $keep = true;
+            }
+
+            $key = array_search('--debug', $args);
+            if($key !== false)
+            {
+                $debug = true;
             }
 
             $key = array_search('h', $args);
@@ -297,7 +304,8 @@ class SpryCliConnector
             "  ex.     spry l php --lines 10 --trace\n\n".
             "\e[1mmigrate | m [--options]       \e[0m- Migrate the Database Schema.\n".
             "  --dryrun  |  -d             - Only check for what will be migrated and report back. No actions will be taken.\n".
-            "  --force   |  -f             - Delete Fields, Tables and other data that does not match the new Scheme.\n\n".
+            "  --force   |  -f             - Delete Fields, Tables and other data that does not match the new Scheme.\n".
+            "  --debug                     - Debug SQL, Shows SQL statements without running any actions.\n\n".
             "\e[1mnew | n [project]             \e[0m- Creates a new project and initiates it.\n".
             "  [project]                   - Name of project/directory to create and initialize.\n\n".
             "\e[1mprint | p [property]          \e[0m- Print the Property from the config in json.\n".
@@ -801,6 +809,7 @@ class SpryCliConnector
                 $migrate_args = [
                     'dryrun' => (in_array('--dryrun', $args) || in_array('-d', $args) ? true : false),
                     'force' => (in_array('--force', $args) || in_array('-f', $args) ? true : false),
+                    'debug' => $debug
                 ];
 
                 $response = SpryUtilities::dbMigrate($migrate_args);
