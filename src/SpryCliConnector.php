@@ -809,7 +809,7 @@ class SpryCliConnector
                         $failedTests = [];
 
                         if (empty(Spry::config()->tests)) {
-                            $response = Spry::results(5052, null);
+                            $response = Spry::response(5052, null);
                             if (!empty($response['messages'])) {
                                 echo "\e[91mERROR:\e[0m\n";
                                 echo implode("\n", $response['messages'])."\n";
