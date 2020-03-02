@@ -305,20 +305,13 @@ class SpryCliConnector
                 $componentContents = str_replace('examples', SpryUtilities::plural(strtolower($componentSanitized)), $componentContents);
 
                 if (!empty(Spry::config()->responseCodes)) {
-                    if ($codeKeys = array_keys(Spry::config()->responseCodes)) {
-                        sort($codeKeys);
-                        $lastCode = intval(substr(strval(end($codeKeys)), 1));
+                    if ($groups = array_keys(Spry::config()->responseCodes)) {
+                        rsort($groups);
+                        $lastGroup = $groups[0];
+                        $newGroupId = intval($lastGroup) + 1;
 
-                        if ($lastCode) {
-                            // Increase by one to make sure it doesn't
-                            // overlap when --code-gap is set to 0
-                            ++$lastCode;
-
-                            if ($lastCode < 100) {
-                                $lastCode = 110;
-                            }
-
-                            $componentContents = str_replace('00', substr(strval($lastCode + $codeGap), 0, 2), $componentContents);
+                        if (!empty($newGroupId) && !isset(Spry::config()->responseCodes[$newGroupId])) {
+                            $componentContents = str_replace('private static $id = 1;', 'private static $id = '.$newGroupId.';', $componentContents);
                         }
                     }
                 }
@@ -809,7 +802,7 @@ class SpryCliConnector
                         $failedTests = [];
 
                         if (empty(Spry::config()->tests)) {
-                            $response = Spry::response(5052, null);
+                            $response = Spry::response(0, 52);
                             if (!empty($response['messages'])) {
                                 echo "\e[91mERROR:\e[0m\n";
                                 echo implode("\n", $response['messages'])."\n";
