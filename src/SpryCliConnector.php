@@ -355,10 +355,12 @@ class SpryCliConnector
                         break;
 
                     case 'tests':
-                        if (Spry::db()->deleteTestData()) {
-                            echo "\e[92mCleared Test Data!\e[0m\n";
-                        } else {
-                            "\e[91mERROR:\e[0m Unknown Error Clearing Test Data.\n";
+                        if (!empty(Spry::config()->dbProvider)) {
+                            if (Spry::db()->deleteTestData()) {
+                                echo "\e[92mCleared Test Data!\e[0m\n";
+                            } else {
+                                "\e[91mERROR:\e[0m Unknown Error Clearing Test Data.\n";
+                            }
                         }
 
                         break;
@@ -658,10 +660,12 @@ class SpryCliConnector
                 }
 
                 if (!$keep) {
-                    if (Spry::db()->deleteTestData()) {
-                        echo "\e[92mCleared Test Data!\e[0m\n";
-                    } else {
-                        "\e[91mERROR:\e[0m Unknown Error Clearing Test Data.\n";
+                    if (!empty(Spry::config()->dbProvider)) {
+                        if (Spry::db()->deleteTestData()) {
+                            echo "\e[92mCleared Test Data!\e[0m\n";
+                        } else {
+                            "\e[91mERROR:\e[0m Unknown Error Clearing Test Data.\n";
+                        }
                     }
                 }
 
