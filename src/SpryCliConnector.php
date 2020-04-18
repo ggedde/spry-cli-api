@@ -300,9 +300,12 @@ class SpryCliConnector
 
                 // Replace Component config_content
                 $componentContents = file_get_contents($newComponent);
+                $componentContents = str_replace('class Examples', 'class '.$componentName, $componentContents);
+                $componentContents = str_replace('Examples::', $componentName.'::', $componentContents);
                 $componentContents = str_replace('Examples', SpryUtilities::plural($componentName), $componentContents);
                 $componentContents = str_replace('Example', SpryUtilities::single($componentName), $componentContents);
                 $componentContents = str_replace('examples', SpryUtilities::plural(strtolower($componentSanitized)), $componentContents);
+                $componentContents = str_replace('example', SpryUtilities::single(strtolower($componentSanitized)), $componentContents);
 
                 if (!empty(Spry::config()->responseCodes)) {
                     if ($groups = array_keys(Spry::config()->responseCodes)) {
@@ -317,236 +320,6 @@ class SpryCliConnector
                 }
 
                 file_put_contents($newComponent, $componentContents);
-
-                // if ($withCodes || $withAll) {
-                //     if (!empty(Spry::config()->responseCodes)) {
-                //         if ($codeKeys = array_keys(Spry::config()->responseCodes)) {
-                //             sort($codeKeys);
-                //             $lastCode = intval(substr(strval(end($codeKeys)), 1));
-
-                //             if ($lastCode) {
-                //                 // Increase by one to make sure it doesn't
-                //                 // overlap when --code-gap is set to 0
-                //                 $lastCode++;
-
-                //                 if ($lastCode < 100) {
-                //                     $lastCode = 110;
-                //                 }
-
-                //                 $newOutput = "\n\t// ".$componentName."\n";
-                //                 $newOutput .= "\t2".($lastCode + $codeGap)." => ['en' => 'Successfully Retrieved ".SpryUtilities::single($componentName)."'],\n";
-                //                 $newOutput .= "\t4".($lastCode + $codeGap)." => ['en' => 'No ".SpryUtilities::single($componentName)." with that ID Found'],\n";
-                //                 $newOutput .= "\t5".($lastCode + $codeGap)." => ['en' => 'Error: Retrieving ".SpryUtilities::single($componentName)."'],\n";
-
-                //                 $newOutput .= "\t2".($lastCode + $codeGap + 1)." => ['en' => 'Successfully Retrieved ".SpryUtilities::plural($componentName)."'],\n";
-                //                 $newOutput .= "\t4".($lastCode + $codeGap + 1)." => ['en' => 'No ".SpryUtilities::plural($componentName)." Found'],\n";
-                //                 $newOutput .= "\t5".($lastCode + $codeGap + 1)." => ['en' => 'Error: Retrieving ".SpryUtilities::plural($componentName)."'],\n";
-
-                //                 $newOutput .= "\t2".($lastCode + $codeGap + 2)." => ['en' => 'Successfully Created ".SpryUtilities::single($componentName)."'],\n";
-                //                 $newOutput .= "\t5".($lastCode + $codeGap + 2)." => ['en' => 'Error: Creating ".SpryUtilities::single($componentName)."'],\n";
-
-                //                 $newOutput .= "\t2".($lastCode + $codeGap + 3)." => ['en' => 'Successfully Updated ".SpryUtilities::single($componentName)."'],\n";
-                //                 $newOutput .= "\t4".($lastCode + $codeGap + 3)." => ['en' => 'No ".SpryUtilities::single($componentName)." with that ID Found'],\n";
-                //                 $newOutput .= "\t5".($lastCode + $codeGap + 3)." => ['en' => 'Error: Updating ".SpryUtilities::single($componentName)."'],\n";
-
-                //                 $newOutput .= "\t2".($lastCode + $codeGap + 4)." => ['en' => 'Successfully Deleted ".SpryUtilities::single($componentName)."'],\n";
-                //                 $newOutput .= "\t5".($lastCode + $codeGap + 4)." => ['en' => 'Error: Deleting ".SpryUtilities::single($componentName)."'],\n];";
-
-                //                 // Update Component Codes
-                //                 $componentContents = preg_replace('/000/', ($lastCode + $codeGap), $componentContents, 1);
-                //                 $componentContents = preg_replace('/000/', ($lastCode + $codeGap + 1), $componentContents, 1);
-                //                 $componentContents = preg_replace('/000/', ($lastCode + $codeGap + 2), $componentContents, 1);
-                //                 $componentContents = preg_replace('/000/', ($lastCode + $codeGap + 3), $componentContents, 1);
-                //                 $componentContents = preg_replace('/000/', ($lastCode + $codeGap + 4), $componentContents, 1);
-                //                 if (file_put_contents($newComponent, $componentContents)) {
-                //                     // Add Codes to Config file
-                //                     $configContents = file_get_contents($configFile);
-
-                //                     $posStart = stripos($configContents, '$config->responseCodes');
-                //                     if (false !== $posStart) {
-                //                         if ($pos = stripos($configContents, '];', $posStart)) {
-                //                             $newConfigContents = substr($configContents, 0, $pos).$newOutput.substr($configContents, ($pos + 2));
-                //                             file_put_contents($configFile, $newConfigContents);
-                //                         }
-                //                     }
-                //                 }
-                //             }
-                //         }
-                //     }
-                // }
-
-                // if ($withRoutes || $withAll) {
-                //     $newOutput = "\n\t// ".$componentName."\n";
-
-                //     $newOutput .= "\t'/".strtolower($componentSanitized)."/get' => [\n";
-                //     $newOutput .= "\t\t'label' => 'Get ".SpryUtilities::single($componentName)."',\n";
-                //     $newOutput .= "\t\t'controller' => '".$componentName."::get',\n";
-                //     $newOutput .= "\t\t'access' => 'public',\n";
-                //     $newOutput .= "\t\t'params' => [\n";
-                //     $newOutput .= "\t\t\t'id' => [\n";
-                //     $newOutput .= "\t\t\t\t'required' => true,\n";
-                //     $newOutput .= "\t\t\t\t'int' => true\n";
-                //     $newOutput .= "\t\t\t]\n";
-                //     $newOutput .= "\t\t]\n";
-                //     $newOutput .= "\t],\n";
-
-                //     $newOutput .= "\t'/".strtolower($componentSanitized)."/get_all' => [\n";
-                //     $newOutput .= "\t\t'label' => 'Get All ".SpryUtilities::plural($componentName)."',\n";
-                //     $newOutput .= "\t\t'controller' => '".$componentName."::get_all',\n";
-                //     $newOutput .= "\t\t'access' => 'public',\n";
-                //     $newOutput .= "\t\t'params' => [],\n";
-                //     $newOutput .= "\t],\n";
-
-                //     $newOutput .= "\t'/".strtolower($componentSanitized)."/insert' => [\n";
-                //     $newOutput .= "\t\t'label' => 'Insert ".SpryUtilities::single($componentName)."',\n";
-                //     $newOutput .= "\t\t'controller' => '".$componentName."::insert',\n";
-                //     $newOutput .= "\t\t'access' => 'public',\n";
-                //     $newOutput .= "\t\t'params' => [\n";
-                //     $newOutput .= "\t\t\t'name' => [\n";
-                //     $newOutput .= "\t\t\t\t'required' => true,\n";
-                //     $newOutput .= "\t\t\t\t'minlength' => 1,\n";
-                //     $newOutput .= "\t\t\t],\n";
-                //     $newOutput .= "\t\t\t'email' => [\n";
-                //     $newOutput .= "\t\t\t\t'required' => true,\n";
-                //     $newOutput .= "\t\t\t\t'email' => true,\n";
-                //     $newOutput .= "\t\t\t],\n";
-                //     $newOutput .= "\t\t],\n";
-                //     $newOutput .= "\t],\n";
-
-                //     $newOutput .= "\t'/".strtolower($componentSanitized)."/update' => [\n";
-                //     $newOutput .= "\t\t'label' => 'Update ".SpryUtilities::single($componentName)."',\n";
-                //     $newOutput .= "\t\t'controller' => '".$componentName."::update',\n";
-                //     $newOutput .= "\t\t'access' => 'public',\n";
-                //     $newOutput .= "\t\t'params' => [\n";
-                //     $newOutput .= "\t\t\t'id' => [\n";
-                //     $newOutput .= "\t\t\t\t'required' => true,\n";
-                //     $newOutput .= "\t\t\t\t'int' => true,\n";
-                //     $newOutput .= "\t\t\t],\n";
-                //     $newOutput .= "\t\t\t'name' => [\n";
-                //     $newOutput .= "\t\t\t\t'minlength' => 1,\n";
-                //     $newOutput .= "\t\t\t],\n";
-                //     $newOutput .= "\t\t\t'email' => [\n";
-                //     $newOutput .= "\t\t\t\t'email' => true,\n";
-                //     $newOutput .= "\t\t\t],\n";
-                //     $newOutput .= "\t\t],\n";
-                //     $newOutput .= "\t],\n";
-
-                //     $newOutput .= "\t'/".strtolower($componentSanitized)."/delete' => [\n";
-                //     $newOutput .= "\t\t'label' => 'Delete ".SpryUtilities::single($componentName)."',\n";
-                //     $newOutput .= "\t\t'controller' => '".$componentName."::delete',\n";
-                //     $newOutput .= "\t\t'access' => 'public',\n";
-                //     $newOutput .= "\t\t'params' => [\n";
-                //     $newOutput .= "\t\t\t'id' => [\n";
-                //     $newOutput .= "\t\t\t\t'required' => true,\n";
-                //     $newOutput .= "\t\t\t\t'int' => true,\n";
-                //     $newOutput .= "\t\t\t],\n";
-                //     $newOutput .= "\t\t],\n";
-                //     $newOutput .= "\t],\n];";
-
-                //     // Add Codes to Config file
-                //     $configContents = file_get_contents($configFile);
-
-                //     $posStart = stripos($configContents, '$config->routes');
-                //     if (false !== $posStart) {
-                //         if ($pos = stripos($configContents, '];', $posStart)) {
-                //             $newConfigContents = substr($configContents, 0, $pos).$newOutput.substr($configContents, ($pos + 2));
-                //             file_put_contents($configFile, $newConfigContents);
-                //         }
-                //     }
-                // }
-
-                // if ($withTests || $withAll) {
-                //     $newOutput = "\n\t// ".$componentName."\n";
-
-                //     $newOutput .= "\t'".strtolower($componentSanitized)."_get_all_empty' => [\n";
-                //     $newOutput .= "\t\t'label' => 'Get All ".SpryUtilities::plural($componentName)." Empty',\n";
-                //     $newOutput .= "\t\t'route' => '/".strtolower($componentSanitized)."/get_all',\n";
-                //     $newOutput .= "\t\t'params' => [\n";
-                //     $newOutput .= "\t\t\t'name' => '!',\n";
-                //     $newOutput .= "\t\t],\n";
-                //     $newOutput .= "\t\t'expect' => [\n";
-                //     $newOutput .= "\t\t\t'code' => 4".(!empty($lastCode) ? ($lastCode + $codeGap + 1) : '4000').",\n";
-                //     $newOutput .= "\t\t],\n";
-                //     $newOutput .= "\t],\n";
-
-                //     $newOutput .= "\t'".strtolower($componentSanitized)."_insert' => [\n";
-                //     $newOutput .= "\t\t'label' => 'Insert ".SpryUtilities::single($componentName)."',\n";
-                //     $newOutput .= "\t\t'route' => '/".strtolower($componentSanitized)."/insert',\n";
-                //     $newOutput .= "\t\t'params' => [\n";
-                //     $newOutput .= "\t\t\t'name' => 'Bob',\n";
-                //     $newOutput .= "\t\t\t'email' => 'bob'.time().'@gmail.com',\n";
-                //     $newOutput .= "\t\t],\n";
-                //     $newOutput .= "\t\t'expect' => [\n";
-                //     $newOutput .= "\t\t\t'code' => 2".(!empty($lastCode) ? ($lastCode + $codeGap + 2) : '2000').",\n";
-                //     $newOutput .= "\t\t],\n";
-                //     $newOutput .= "\t],\n";
-
-                //     $newOutput .= "\t'".strtolower($componentSanitized)."_get_all' => [\n";
-                //     $newOutput .= "\t\t'label' => 'Get All ".SpryUtilities::plural($componentName)."',\n";
-                //     $newOutput .= "\t\t'route' => '/".strtolower($componentSanitized)."/get_all',\n";
-                //     $newOutput .= "\t\t'params' => [],\n";
-                //     $newOutput .= "\t\t'expect' => [\n";
-                //     $newOutput .= "\t\t\t'code' => 2".(!empty($lastCode) ? ($lastCode + $codeGap + 1) : '2000').",\n";
-                //     $newOutput .= "\t\t],\n";
-                //     $newOutput .= "\t],\n";
-
-                //     $newOutput .= "\t'".strtolower($componentSanitized)."_get' => [\n";
-                //     $newOutput .= "\t\t'label' => 'Get ".SpryUtilities::single($componentName)."',\n";
-                //     $newOutput .= "\t\t'route' => '/".strtolower($componentSanitized)."/get',\n";
-                //     $newOutput .= "\t\t'params' => [\n";
-                //     $newOutput .= "\t\t\t'id' => '{{body.id}}',\n";
-                //     $newOutput .= "\t\t],\n";
-                //     $newOutput .= "\t\t'expect' => [\n";
-                //     $newOutput .= "\t\t\t'code' => 2".(!empty($lastCode) ? ($lastCode + $codeGap) : '2000').",\n";
-                //     $newOutput .= "\t\t],\n";
-                //     $newOutput .= "\t],\n";
-
-                //     $newOutput .= "\t'".strtolower($componentSanitized)."_get_empty' => [\n";
-                //     $newOutput .= "\t\t'label' => 'Get ".SpryUtilities::single($componentName)." Empty',\n";
-                //     $newOutput .= "\t\t'route' => '/".strtolower($componentSanitized)."/get',\n";
-                //     $newOutput .= "\t\t'params' => [\n";
-                //     $newOutput .= "\t\t\t'id' => '-1',\n";
-                //     $newOutput .= "\t\t],\n";
-                //     $newOutput .= "\t\t'expect' => [\n";
-                //     $newOutput .= "\t\t\t'code' => 4".(!empty($lastCode) ? ($lastCode + $codeGap) : '4000').",\n";
-                //     $newOutput .= "\t\t],\n";
-                //     $newOutput .= "\t],\n";
-
-                //     $newOutput .= "\t'".strtolower($componentSanitized)."_update' => [\n";
-                //     $newOutput .= "\t\t'label' => 'Update ".SpryUtilities::single($componentName)."',\n";
-                //     $newOutput .= "\t\t'route' => '/".strtolower($componentSanitized)."/update',\n";
-                //     $newOutput .= "\t\t'params' => [\n";
-                //     $newOutput .= "\t\t\t'id' => '{{body.id}}',\n";
-                //     $newOutput .= "\t\t\t'name' => 'Bob Bobby',\n";
-                //     $newOutput .= "\t\t\t'email' => 'bob'.time().'@gmail.com',\n";
-                //     $newOutput .= "\t\t],\n";
-                //     $newOutput .= "\t\t'expect' => [\n";
-                //     $newOutput .= "\t\t\t'code' => 2".(!empty($lastCode) ? ($lastCode + $codeGap + 3) : '2000').",\n";
-                //     $newOutput .= "\t\t],\n";
-                //     $newOutput .= "\t],\n";
-
-                //     $newOutput .= "\t'".strtolower($componentSanitized)."_delete' => [\n";
-                //     $newOutput .= "\t\t'label' => 'Delete ".SpryUtilities::single($componentName)."',\n";
-                //     $newOutput .= "\t\t'route' => '/".strtolower($componentSanitized)."/delete',\n";
-                //     $newOutput .= "\t\t'params' => [\n";
-                //     $newOutput .= "\t\t\t'id' => '{body.id}',\n";
-                //     $newOutput .= "\t\t],\n";
-                //     $newOutput .= "\t\t'expect' => [\n";
-                //     $newOutput .= "\t\t\t'code' => 2".(!empty($lastCode) ? ($lastCode + $codeGap + 4) : '2000').",\n";
-                //     $newOutput .= "\t\t],\n";
-                //     $newOutput .= "\t],\n];";
-
-                //     // Add Codes to Config file
-                //     $configContents = file_get_contents($configFile);
-
-                //     $posStart = stripos($configContents, '$config->tests');
-                //     if (false !== $posStart) {
-                //         if ($pos = stripos($configContents, '];', $posStart)) {
-                //             $newConfigContents = substr($configContents, 0, $pos).$newOutput.substr($configContents, ($pos + 2));
-                //             file_put_contents($configFile, $newConfigContents);
-                //         }
-                //     }
-                // }
 
                 echo "\n\e[92mComponent Created Successfully!\e[0m\n".$newComponent."\n";
 
@@ -693,15 +466,15 @@ class SpryCliConnector
 
                 $response = SpryUtilities::dbMigrate($migrateArgs);
 
-                if (!empty($response['status']) && $response['status'] === 'error') {
-                    if (!empty($response['messages'])) {
+                if (!empty($response->status) && $response->status === 'error') {
+                    if (!empty($response->messages)) {
                         echo "\e[91mERROR:\e[0m\n";
-                        echo implode("\n", $response['messages']);
+                        echo implode("\n", $response->messages);
                     }
-                } elseif (!empty($response['status']) && $response['status'] === 'success') {
-                    if (!empty($response['body'])) {
+                } elseif (!empty($response->status) && $response->status === 'success') {
+                    if (!empty($response->body)) {
                         echo "\e[92mSuccess!\e[0m\n";
-                        echo implode("\n", $response['body']);
+                        echo implode("\n", $response->body);
                     }
                 }
 
@@ -776,13 +549,13 @@ class SpryCliConnector
                         $response = SpryUtilities::test($testdata);
                         $time = number_format(microtime(true) - $timeStart, 6);
                         $totalTime += $time;
-                        if (!empty($response['status']) && $response['status'] === 'error') {
-                            if (!empty($response['messages'])) {
+                        if (!empty($response->status) && $response->status === 'error') {
+                            if (!empty($response->messages)) {
                                 echo "\e[91mERROR:\e[0m (".$time." sec)\n";
-                                echo implode("\n", $response['messages'])."\n";
+                                echo implode("\n", $response->messages)."\n";
                             }
-                        } elseif (!empty($response['status']) && $response['status'] === 'success') {
-                            if (!empty($response['body'])) {
+                        } elseif (!empty($response->status) && $response->status === 'success') {
+                            if (!empty($response->body)) {
                                 echo "\e[92mSuccess!\e[0m (".$time." sec)\n";
                             }
                         }
@@ -802,10 +575,10 @@ class SpryCliConnector
                         $failedTests = [];
 
                         if (empty(Spry::config()->tests)) {
-                            $response = Spry::response(0, 52);
-                            if (!empty($response['messages'])) {
+                            $response = Spry::response(52);
+                            if (!empty($response->messages)) {
                                 echo "\e[91mERROR:\e[0m\n";
-                                echo implode("\n", $response['messages'])."\n";
+                                echo implode("\n", $response->messages)."\n";
                                 exit;
                             }
                         }
@@ -846,14 +619,14 @@ class SpryCliConnector
 
                             $time = number_format(microtime(true) - $timeStart, 6);
                             $totalTime += $time;
-                            if (!empty($response['status']) && $response['status'] === 'error') {
+                            if (!empty($response->status) && $response->status === 'error') {
                                 $failedTests[] = $testName;
-                                if (!empty($response['messages'])) {
+                                if (!empty($response->messages)) {
                                     echo "\e[91mFailed:\e[0m (".$time." sec)\n";
-                                    echo implode("\n", $response['messages'])."\n";
+                                    echo implode("\n", $response->messages)."\n";
                                 }
-                            } elseif (!empty($response['status']) && $response['status'] === 'success') {
-                                if (!empty($response['body'])) {
+                            } elseif (!empty($response->status) && $response->status === 'success') {
+                                if (!empty($response->status)) {
                                     echo "\e[92mSuccess!\e[0m (".$time." sec)\n";
                                 }
                             }
@@ -863,11 +636,11 @@ class SpryCliConnector
                             }
 
                             // Stop on Error if Skip is false
-                            if (!empty($response['status']) && $response['status'] === 'error' && !$skip) {
+                            if (!empty($response->status) && $response->status === 'error' && !$skip) {
                                 break;
                             }
 
-                            $lastResponses[$testName] = (!empty($response['body']['full_response']) ? $response['body']['full_response'] : null);
+                            $lastResponses[$testName] = (!empty($response->body['full_response']) ? $response->body['full_response'] : null);
                         }
 
                         if (empty($failedTests)) {
