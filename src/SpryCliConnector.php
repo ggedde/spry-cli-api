@@ -73,7 +73,10 @@ class SpryCliConnector
                 $configFile = $args[($key + 1)];
             }
 
-            $key = array_search('--verbose', $args);
+            $key = array_search('-vv', $args);
+            if (false === $key) {
+                $key = array_search('--verbose', $args);
+            }
             if (false !== $key) {
                 $verbose = true;
             }
@@ -121,7 +124,7 @@ class SpryCliConnector
             if (false === $key) {
                 $key = array_search('test', $args);
             }
-            if (false !== $key && isset($args[($key + 1)]) && strpos($args[($key + 1)], '--') === false) {
+            if (false !== $key && isset($args[($key + 1)]) && strpos($args[($key + 1)], '--') === false && strpos($args[($key + 1)], '-vv') === false) {
                 $singletest = $args[($key + 1)];
             }
 
@@ -314,7 +317,7 @@ class SpryCliConnector
                         $newGroupId = intval($lastGroup) + 1;
 
                         if (!empty($newGroupId) && !isset(Spry::config()->responseCodes[$newGroupId])) {
-                            $componentContents = str_replace('private static $id = 1;', 'private static $id = '.$newGroupId.';', $componentContents);
+                            $componentContents = str_replace('return 1;', 'return '.$newGroupId.';', $componentContents);
                         }
                     }
                 }
@@ -577,7 +580,7 @@ class SpryCliConnector
                         $failedTests = [];
 
                         if (empty(Spry::config()->tests)) {
-                            $response = Spry::response(52);
+                            $response = Spry::response(null, 52);
                             if (!empty($response->messages)) {
                                 echo "\e[91mERROR:\e[0m\n";
                                 echo implode("\n", $response->messages)."\n";
