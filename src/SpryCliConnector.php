@@ -267,7 +267,7 @@ class SpryCliConnector
         }
 
         // Load the Main Config Data and Set Autoloader and Configure Filters
-        Spry::configure($configFile);
+        Spry::configure($configFile, true);
 
         switch ($command) {
             case 'component':
