@@ -278,7 +278,7 @@ class SpryCliConnector
                     die("\e[91mERROR:\e[0m Missing Component Name.");
                 }
 
-                $sourceComponent = self::$cliPath.'/example_project/components/example.php';
+                $sourceComponent = self::$cliPath.'/example_project/components/ExampleComponent.php';
                 $newComponent = Spry::config()->componentsDir.'/'.$componentName.'.php';
 
                 if (!is_dir(Spry::config()->componentsDir.'/')) {
@@ -303,8 +303,8 @@ class SpryCliConnector
 
                 // Replace Component config_content
                 $componentContents = file_get_contents($newComponent);
-                $componentContents = str_replace('class Examples', 'class '.$componentName, $componentContents);
-                $componentContents = str_replace('Examples::', $componentName.'::', $componentContents);
+                $componentContents = str_replace('class ExampleComponent', 'class '.$componentName, $componentContents);
+                $componentContents = str_replace('ExampleComponent::', $componentName.'::', $componentContents);
                 $componentContents = str_replace('Examples', SpryUtilities::plural($componentName), $componentContents);
                 $componentContents = str_replace('Example', SpryUtilities::single($componentName), $componentContents);
                 $componentContents = str_replace('examples', SpryUtilities::plural(strtolower($componentSanitized)), $componentContents);
