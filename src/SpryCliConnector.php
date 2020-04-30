@@ -471,16 +471,16 @@ class SpryCliConnector
 
                 $response = SpryUtilities::dbMigrate($migrateArgs);
 
-                if (!empty($response->status) && $response->status === 'error') {
-                    if (!empty($response->messages)) {
-                        echo "\e[91mERROR:\e[0m\n";
-                        echo implode("\n", $response->messages);
-                    }
+                if (empty($response->status) && $response->status === 'error') {
+                    echo "\e[91mERROR:\e[0m\n";
                 } elseif (!empty($response->status) && $response->status === 'success') {
-                    if (!empty($response->body)) {
-                        echo "\e[92mSuccess!\e[0m\n";
-                        echo implode("\n", $response->messages);
-                    }
+                    echo "\e[92mSuccess!\e[0m\n";
+                } else {
+                    echo "\e[92mUnknown ERROR!\e[0m\n";
+                }
+
+                if (!empty($response->messages)) {
+                    echo implode("\n", $response->messages);
                 }
 
                 break;
