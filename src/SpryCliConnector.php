@@ -479,7 +479,7 @@ class SpryCliConnector
                 } elseif (!empty($response->status) && $response->status === 'success') {
                     if (!empty($response->body)) {
                         echo "\e[92mSuccess!\e[0m\n";
-                        echo implode("\n", $response->body);
+                        echo implode("\n", $response->messages);
                     }
                 }
 
